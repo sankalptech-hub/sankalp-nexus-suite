@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,10 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PenTool, Copy, Download, Send, Globe, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { aiClient, type AIMessage } from '@/lib/ai/aiClient';
 import type { AISettings } from './AISettingsModal';
+import { BlogPublisher } from './BlogPublisher';
 
 interface BlogWriterProps {
   aiSettings: AISettings;
@@ -312,13 +313,28 @@ Topic: ${topic}`;
         </CardHeader>
         <CardContent>
           {blogPost ? (
-            <ScrollArea className="h-[500px] w-full rounded border p-4">
-              <div className="prose prose-sm dark:prose-invert max-w-none">
-                <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
-                  {blogPost.content}
-                </pre>
-              </div>
-            </ScrollArea>
+            <Tabs defaultValue="preview" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="preview">Preview</TabsTrigger>
+                <TabsTrigger value="publish">Publish</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="preview" className="mt-4">
+                <ScrollArea className="h-[500px] w-full rounded border p-4">
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
+                      {blogPost.content}
+                    </pre>
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+              
+              <TabsContent value="publish" className="mt-4">
+                <ScrollArea className="h-[500px] w-full">
+                  <BlogPublisher blogPost={blogPost} />
+                </ScrollArea>
+              </TabsContent>
+            </Tabs>
           ) : (
             <div className="h-[500px] flex items-center justify-center text-muted-foreground">
               <div className="text-center">
