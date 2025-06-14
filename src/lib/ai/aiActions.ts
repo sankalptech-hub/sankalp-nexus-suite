@@ -75,6 +75,42 @@ export const aiActions: AIAction[] = [
     systemPrompt: 'You are a technical writer. Create clear, comprehensive documentation with examples and best practices.',
     userPrompt: () => 'What would you like me to document? Please describe the feature, API, or process.',
   },
+  {
+    id: 'blog-outline',
+    name: 'Create Blog Outline',
+    description: 'Generate a structured blog post outline',
+    icon: '📋',
+    category: 'blog',
+    systemPrompt: 'You are a content strategist and blog writer. Create detailed, engaging blog post outlines with clear structure and flow.',
+    userPrompt: () => 'What blog topic would you like me to create an outline for?',
+  },
+  {
+    id: 'blog-title',
+    name: 'Generate Blog Titles',
+    description: 'Create catchy, SEO-friendly blog titles',
+    icon: '🎯',
+    category: 'blog',
+    systemPrompt: 'You are a content marketing expert. Generate compelling, clickable, and SEO-friendly blog titles that drive engagement.',
+    userPrompt: () => 'What is your blog topic? I\'ll generate several engaging title options for you.',
+  },
+  {
+    id: 'blog-intro',
+    name: 'Write Blog Introduction',
+    description: 'Create engaging blog post introductions',
+    icon: '🚀',
+    category: 'blog',
+    systemPrompt: 'You are a skilled blog writer. Write engaging, hook-filled introductions that draw readers in and set up the rest of the blog post.',
+    userPrompt: () => 'What is your blog topic and main points? I\'ll write a compelling introduction.',
+  },
+  {
+    id: 'blog-seo',
+    name: 'SEO Optimization',
+    description: 'Optimize blog content for search engines',
+    icon: '🔍',
+    category: 'blog',
+    systemPrompt: 'You are an SEO content specialist. Provide actionable advice for optimizing blog content for search engines while maintaining readability.',
+    userPrompt: () => 'Share your blog content or topic, and I\'ll provide SEO optimization suggestions.',
+  },
 ];
 
 export const executeAIAction = async (actionId: string, context?: any): Promise<string> => {

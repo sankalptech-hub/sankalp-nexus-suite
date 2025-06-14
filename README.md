@@ -1,166 +1,154 @@
 
-# Welcome to your Lovable project
+# Sankalp Tech & Solutions Dashboard
 
-## Project info
+A modern, responsive dashboard application built with React, TypeScript, and Tailwind CSS for Sankalp Tech & Solution Inc.
 
-**URL**: https://lovable.dev/projects/ed47c8be-c09e-479b-b0be-d66ee83149e8
+## Features
 
-## How can I edit this code?
+### 🔐 Authentication
+- Secure user authentication with Supabase
+- Role-based access control (Admin/Client)
+- Protected routes and user sessions
 
-There are several ways of editing your application.
+### 📊 Dashboard
+- **Projects Management**: Create, edit, delete, and track project status
+- **Client Portal**: Dedicated dashboard for clients to view their projects
+- **Admin Portal**: Complete administrative control over projects and users
 
-**Use Lovable**
+### 🤖 AI Tools
+- **General Chat**: AI-powered assistant for general queries
+- **Code Assistant**: Help with coding, debugging, and development
+- **Documentation**: Generate and review technical documentation
+- **Email Writer**: Compose professional emails and communications
+- **Blog Writer**: Generate engaging blog posts and articles with AI
+- **Image Generation**: Create images using DALL-E
+- **Conversation History**: Save and reload past AI conversations
+- **AI Settings**: Configure AI model, temperature, and provider preferences
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/ed47c8be-c09e-479b-b0be-d66ee83149e8) and start prompting.
+### ✍️ Blog Writer Features
+- **Topic-based Generation**: Enter a blog topic and let AI create full articles
+- **Customizable Content**: Set keywords, target audience, tone, and word count
+- **Multiple Tones**: Professional, casual, technical, conversational, authoritative, or creative
+- **Export Options**: Copy to clipboard or download as Markdown
+- **Rich Text Display**: Formatted preview of generated content
+- **Word Count Tracking**: Real-time word count and generation timestamps
 
-Changes made via Lovable will be committed automatically to this repo.
+## Technology Stack
 
-**Use your preferred IDE**
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS, Shadcn/ui components
+- **Backend**: Supabase (Database, Auth, Storage)
+- **AI Integration**: OpenAI API, Groq API
+- **Icons**: Lucide React
+- **Charts**: Recharts
+- **State Management**: React Query (TanStack Query)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Environment Variables
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Create a `.env.local` file in the root directory with the following variables:
 
-Follow these steps:
+```env
+# Supabase Configuration
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# AI Configuration
+VITE_OPENAI_API_KEY=your_openai_api_key_here
+VITE_GROQ_API_KEY=your_groq_api_key_here
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Getting API Keys
 
-# Step 3: Install the necessary dependencies.
-npm i
+#### OpenAI API Key
+1. Go to [OpenAI Platform](https://platform.openai.com/api-keys)
+2. Sign in to your account
+3. Click "Create new secret key"
+4. Copy the key and add it to your `.env.local` file
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+#### Groq API Key
+1. Go to [Groq Console](https://console.groq.com/keys)
+2. Sign in to your account
+3. Generate a new API key
+4. Copy the key and add it to your `.env.local` file
+
+#### Supabase Configuration
+1. Create a new project at [Supabase](https://supabase.com)
+2. Go to Settings > API
+3. Copy the Project URL and anon public key
+4. Add them to your `.env.local` file
+
+## Installation
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd sankalp-dashboard
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Set up environment variables (see above)
+
+4. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## AI Configuration
-
-This project includes powerful AI tools that can connect to OpenAI and Groq APIs for enhanced functionality.
-
-### Setting up AI Services
-
-1. **Copy the environment file:**
-   ```sh
-   cp .env.example .env
-   ```
-
-2. **Get your API keys:**
-   - **OpenAI**: Visit [OpenAI API Keys](https://platform.openai.com/api-keys) to create an API key
-   - **Groq**: Visit [Groq Console](https://console.groq.com/keys) to create an API key
-
-3. **Add your keys to `.env`:**
-   ```env
-   VITE_OPENAI_API_KEY=your_openai_api_key_here
-   VITE_GROQ_API_KEY=your_groq_api_key_here
-   ```
-
-### AI Features
-
-- **Chat Assistant**: General conversation and technical help
-- **Code Assistant**: Debugging, code review, and development help
-- **Documentation**: Generate technical documentation
-- **Email Writer**: Draft professional emails
-- **Image Generation**: Create images using DALL-E (requires OpenAI API key)
-- **Quick Actions**: One-click AI actions for common tasks
-- **Conversation History**: Save and reload past conversations
-- **AI Settings**: Configure model, temperature, and provider preferences
-
-### AI System Architecture
-
-The AI system is built with a modular, scalable architecture:
+## Project Structure
 
 ```
 src/
-├── lib/ai/
-│   ├── aiClient.ts       # Core AI API client (OpenAI & Groq)
-│   └── aiActions.ts      # Predefined AI action configurations
-├── components/ai/
-│   ├── AIToolbar.tsx         # Quick action buttons
-│   ├── AIChatHistory.tsx     # Message history with export features
-│   ├── AIInputBox.tsx        # Input handling for chat & images
-│   ├── AISettingsModal.tsx   # AI configuration settings
-│   └── ConversationHistory.tsx # Save/load conversation sessions
-└── pages/dashboard/
-    └── AITools.tsx       # Main AI tools page container
+├── components/
+│   ├── ai/                 # AI-related components
+│   │   ├── AIToolbar.tsx
+│   │   ├── AIChatHistory.tsx
+│   │   ├── AIInputBox.tsx
+│   │   ├── AISettingsModal.tsx
+│   │   ├── BlogWriter.tsx
+│   │   └── ConversationHistory.tsx
+│   ├── layout/             # Layout components
+│   ├── projects/           # Project management components
+│   ├── sections/           # Page sections
+│   └── ui/                 # Reusable UI components
+├── lib/
+│   ├── ai/                 # AI utilities
+│   │   ├── aiClient.ts     # AI API client
+│   │   └── aiActions.ts    # Predefined AI actions
+│   └── utils.ts
+├── pages/                  # Main pages
+│   ├── dashboard/          # Dashboard pages
+│   └── ...
+└── hooks/                  # Custom React hooks
 ```
 
-#### Key Components
+## AI Integration
 
-- **AIClient** (`/src/lib/ai/aiClient.ts`): Handles all API communications with OpenAI and Groq, including automatic fallback
-- **AIActions** (`/src/lib/ai/aiActions.ts`): Defines reusable AI actions with prompts and categories
-- **AIToolbar**: Displays category-specific quick actions
-- **AIChatHistory**: Manages conversation display with copy/export features
-- **AIInputBox**: Handles user input for both text and image generation
-- **ConversationHistory**: Persistent conversation storage and management
-- **AISettingsModal**: User preferences for models, temperature, and providers
+The application supports multiple AI providers:
 
-#### Adding New AI Actions
+- **OpenAI**: GPT models for text generation and DALL-E for images
+- **Groq**: Fast inference for Llama models
 
-To add a new AI action, edit `/src/lib/ai/aiActions.ts`:
+### Blog Writer Usage
 
-```typescript
-{
-  id: 'your-action-id',
-  name: 'Your Action Name',
-  description: 'What this action does',
-  icon: '🔧',
-  category: 'general', // or 'code', 'documentation', 'email'
-  systemPrompt: 'You are a helpful assistant that...',
-  userPrompt: (context) => `Your prompt template with ${context}`,
-}
-```
+1. Navigate to AI Tools → Blog Writer
+2. Enter your blog topic (required)
+3. Optionally add keywords, target audience
+4. Choose tone (professional, casual, technical, etc.)
+5. Select word count (500-1500+ words)
+6. Click "Generate Blog Post"
+7. Copy or download the generated content
 
-#### Extending Categories
+## Contributing
 
-To add new categories, update the `aiToolCategories` array in `/src/pages/dashboard/AITools.tsx` and add corresponding system prompts.
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Commit your changes: `git commit -m 'Add feature'`
+4. Push to the branch: `git push origin feature-name`
+5. Submit a pull request
 
-### Usage Notes
+## License
 
-- The AI client will automatically try OpenAI first, then fall back to Groq if available
-- Image generation requires an OpenAI API key
-- You can use either API key independently or both together for redundancy
-- All AI conversations can be saved locally and exported
-- Conversation history is stored in browser localStorage
-- AI settings persist across sessions
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-- Supabase (for backend functionality)
-- OpenAI & Groq APIs (for AI features)
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/ed47c8be-c09e-479b-b0be-d66ee83149e8) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This project is proprietary and confidential to Sankalp Tech & Solution Inc.

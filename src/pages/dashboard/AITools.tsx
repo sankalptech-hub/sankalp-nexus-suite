@@ -1,20 +1,20 @@
-
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bot, Code, FileText, Mail, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { Bot, Code, FileText, Mail, Image as ImageIcon, Sparkles, PenTool } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { aiClient, type AIMessage, generateImage } from '@/lib/ai/aiClient';
 import { aiActions, executeAIAction } from '@/lib/ai/aiActions';
 
-// Import our new modular components
+// Import our modular components
 import { AIToolbar } from '@/components/ai/AIToolbar';
 import { AIChatHistory, type Message } from '@/components/ai/AIChatHistory';
 import { AIInputBox } from '@/components/ai/AIInputBox';
 import { AISettingsModal, type AISettings } from '@/components/ai/AISettingsModal';
 import { ConversationHistory } from '@/components/ai/ConversationHistory';
+import { BlogWriter } from '@/components/ai/BlogWriter';
 
 /**
  * AITools Page
@@ -29,7 +29,7 @@ const AITools = () => {
     {
       id: '1',
       role: 'assistant',
-      content: `Hello! I'm your AI assistant from Sankalp Tech. I can help you with code, documentation, email writing, image generation, and general tech questions. 
+      content: `Hello! I'm your AI assistant from Sankalp Tech. I can help you with code, documentation, email writing, image generation, blog writing, and general tech questions. 
 
 Available providers: ${aiClient.getAvailableProviders().join(', ') || 'None configured - please set your API keys'}
 
@@ -69,6 +69,12 @@ How can I assist you today?`,
       name: 'Email Writer',
       icon: Mail,
       description: 'Compose professional emails and communications',
+    },
+    {
+      id: 'blog',
+      name: 'Blog Writer',
+      icon: PenTool,
+      description: 'Generate engaging blog posts and articles',
     },
     {
       id: 'image',
@@ -136,6 +142,7 @@ How can I assist you today?`,
         code: 'You are a senior software developer expert in React, Next.js, TypeScript, Tailwind CSS, and modern web development. Provide clear, practical coding solutions.',
         documentation: 'You are a technical writer. Create clear, comprehensive documentation with examples and best practices.',
         email: 'You are a professional communication assistant. Write clear, polite, and effective business emails.',
+        blog: 'You are a content writer. Create engaging blog posts and articles.',
         image: 'You are helping with image generation requests.',
       };
 
@@ -288,6 +295,58 @@ How can I assist you today?`,
     });
   };
 
+  // If the active category is 'blog', render the Blog Writer component
+  if (activeCategory === 'blog') {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">AI Tools</h1>
+          <p className="text-muted-foreground mt-2">
+            Access powerful AI assistants powered by OpenAI and Groq
+          </p>
+          {!aiClient.isAvailable() && (
+            <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+              <p className="text-yellow-800 dark:text-yellow-200">
+                ⚠️ AI services not configured. Please set your API keys in environment variables.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* AI Tool Categories */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+          {aiToolCategories.map((category) => {
+            const Icon = category.icon;
+            return (
+              <Card 
+                key={category.id}
+                className={`cursor-pointer transition-all hover:shadow-md ${
+                  activeCategory === category.id ? 'ring-2 ring-primary' : ''
+                }`}
+                onClick={() => setActiveCategory(category.id)}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-center space-x-2">
+                    <Icon className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-sm">{category.name}</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-xs">
+                    {category.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Blog Writer Component */}
+        <BlogWriter aiSettings={aiSettings} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -305,7 +364,7 @@ How can I assist you today?`,
       </div>
 
       {/* AI Tool Categories */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
         {aiToolCategories.map((category) => {
           const Icon = category.icon;
           return (
