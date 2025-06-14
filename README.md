@@ -80,13 +80,66 @@ This project includes powerful AI tools that can connect to OpenAI and Groq APIs
 - **Email Writer**: Draft professional emails
 - **Image Generation**: Create images using DALL-E (requires OpenAI API key)
 - **Quick Actions**: One-click AI actions for common tasks
+- **Conversation History**: Save and reload past conversations
+- **AI Settings**: Configure model, temperature, and provider preferences
+
+### AI System Architecture
+
+The AI system is built with a modular, scalable architecture:
+
+```
+src/
+├── lib/ai/
+│   ├── aiClient.ts       # Core AI API client (OpenAI & Groq)
+│   └── aiActions.ts      # Predefined AI action configurations
+├── components/ai/
+│   ├── AIToolbar.tsx         # Quick action buttons
+│   ├── AIChatHistory.tsx     # Message history with export features
+│   ├── AIInputBox.tsx        # Input handling for chat & images
+│   ├── AISettingsModal.tsx   # AI configuration settings
+│   └── ConversationHistory.tsx # Save/load conversation sessions
+└── pages/dashboard/
+    └── AITools.tsx       # Main AI tools page container
+```
+
+#### Key Components
+
+- **AIClient** (`/src/lib/ai/aiClient.ts`): Handles all API communications with OpenAI and Groq, including automatic fallback
+- **AIActions** (`/src/lib/ai/aiActions.ts`): Defines reusable AI actions with prompts and categories
+- **AIToolbar**: Displays category-specific quick actions
+- **AIChatHistory**: Manages conversation display with copy/export features
+- **AIInputBox**: Handles user input for both text and image generation
+- **ConversationHistory**: Persistent conversation storage and management
+- **AISettingsModal**: User preferences for models, temperature, and providers
+
+#### Adding New AI Actions
+
+To add a new AI action, edit `/src/lib/ai/aiActions.ts`:
+
+```typescript
+{
+  id: 'your-action-id',
+  name: 'Your Action Name',
+  description: 'What this action does',
+  icon: '🔧',
+  category: 'general', // or 'code', 'documentation', 'email'
+  systemPrompt: 'You are a helpful assistant that...',
+  userPrompt: (context) => `Your prompt template with ${context}`,
+}
+```
+
+#### Extending Categories
+
+To add new categories, update the `aiToolCategories` array in `/src/pages/dashboard/AITools.tsx` and add corresponding system prompts.
 
 ### Usage Notes
 
 - The AI client will automatically try OpenAI first, then fall back to Groq if available
 - Image generation requires an OpenAI API key
 - You can use either API key independently or both together for redundancy
-- All AI conversations are client-side only and not stored on servers
+- All AI conversations can be saved locally and exported
+- Conversation history is stored in browser localStorage
+- AI settings persist across sessions
 
 ## What technologies are used for this project?
 

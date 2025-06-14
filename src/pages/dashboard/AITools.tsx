@@ -1,32 +1,29 @@
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Input } from '@/components/ui/input';
-import { Bot, Send, User as UserIcon, Sparkles, Code, FileText, Mail, Image as ImageIcon, Zap } from 'lucide-react';
+import { Bot, Code, FileText, Mail, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { aiClient, type AIMessage, generateImage } from '@/lib/ai/aiClient';
-import { aiActions, executeAIAction, getActionsByCategory } from '@/lib/ai/aiActions';
+import { aiActions, executeAIAction } from '@/lib/ai/aiActions';
 
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  isImage?: boolean;
-  imageUrl?: string;
-}
+// Import our new modular components
+import { AIToolbar } from '@/components/ai/AIToolbar';
+import { AIChatHistory, type Message } from '@/components/ai/AIChatHistory';
+import { AIInputBox } from '@/components/ai/AIInputBox';
+import { AISettingsModal, type AISettings } from '@/components/ai/AISettingsModal';
+import { ConversationHistory } from '@/components/ai/ConversationHistory';
 
+/**
+ * AITools Page
+ * Main container for the AI assistant interface
+ * Integrates all AI components and manages state
+ */
 const AITools = () => {
   const { user } = useOutletContext<{ user: User }>();
   const { toast } = useToast();
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -40,10 +37,13 @@ How can I assist you today?`,
       timestamp: new Date(),
     }
   ]);
-  const [input, setInput] = useState('');
-  const [imagePrompt, setImagePrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [activeCategory, setActiveCategory] = useState('general');
+  const [aiSettings, setAISettings] = useState<AISettings>({
+    model: 'gpt-4o-mini',
+    temperature: 0.7,
+    provider: 'auto',
+  });
 
   const aiToolCategories = [
     {
@@ -78,19 +78,29 @@ How can I assist you today?`,
     },
   ];
 
-  // Auto-scroll to bottom when new messages arrive
+  // Load AI settings from localStorage
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+    const savedSettings = localStorage.getItem('ai-settings');
+    if (savedSettings) {
+      try {
+        setAISettings(JSON.parse(savedSettings));
+      } catch (error) {
+        console.error('Failed to load AI settings:', error);
       }
     }
-  }, [messages]);
+  }, []);
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
+  // Save AI settings to localStorage
+  const handleSettingsChange = (settings: AISettings) => {
+    setAISettings(settings);
+    localStorage.setItem('ai-settings', JSON.stringify(settings));
+    toast({
+      title: 'Settings Updated',
+      description: 'AI preferences saved successfully',
+    });
+  };
 
+  const handleSendMessage = async (input: string) => {
     if (!aiClient.isAvailable()) {
       toast({
         title: 'AI Not Available',
@@ -108,7 +118,6 @@ How can I assist you today?`,
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInput('');
     setIsLoading(true);
 
     try {
@@ -143,7 +152,11 @@ How can I assist you today?`,
         content: input,
       });
 
-      const response = await aiClient.askAI(aiMessages);
+      const response = await aiClient.askAI(aiMessages, {
+        model: aiSettings.model,
+        temperature: aiSettings.temperature,
+        provider: aiSettings.provider,
+      });
       
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -171,9 +184,7 @@ How can I assist you today?`,
     }
   };
 
-  const handleImageGeneration = async () => {
-    if (!imagePrompt.trim()) return;
-
+  const handleImageGeneration = async (imagePrompt: string) => {
     setIsLoading(true);
     
     const userMessage: Message = {
@@ -184,7 +195,6 @@ How can I assist you today?`,
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setImagePrompt('');
 
     try {
       const result = await generateImage(imagePrompt);
@@ -270,18 +280,13 @@ How can I assist you today?`,
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      if (activeCategory === 'image') {
-        handleImageGeneration();
-      } else {
-        handleSend();
-      }
-    }
+  const handleLoadConversation = (loadedMessages: Message[]) => {
+    setMessages(loadedMessages);
+    toast({
+      title: 'Conversation Loaded',
+      description: 'Previous conversation restored',
+    });
   };
-
-  const categoryActions = getActionsByCategory(activeCategory);
 
   return (
     <div className="space-y-6">
@@ -327,43 +332,12 @@ How can I assist you today?`,
         })}
       </div>
 
-      {/* Quick Actions */}
-      {categoryActions.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5" />
-              Quick Actions
-            </CardTitle>
-            <CardDescription>
-              One-click AI actions for common tasks
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-              {categoryActions.map((action) => (
-                <Button
-                  key={action.id}
-                  variant="outline"
-                  className="justify-start h-auto p-3"
-                  onClick={() => handleQuickAction(action.id)}
-                  disabled={isLoading}
-                >
-                  <div className="text-left">
-                    <div className="flex items-center gap-2 font-medium">
-                      <span>{action.icon}</span>
-                      {action.name}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {action.description}
-                    </div>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Quick Actions Toolbar */}
+      <AIToolbar 
+        activeCategory={activeCategory}
+        onQuickAction={handleQuickAction}
+        isLoading={isLoading}
+      />
 
       {/* Chat Interface */}
       <Card className="h-[600px] flex flex-col">
@@ -373,131 +347,36 @@ How can I assist you today?`,
               <Sparkles className="h-5 w-5 text-primary" />
               <CardTitle>AI Chat Assistant</CardTitle>
             </div>
-            <Badge variant="outline">
-              {aiToolCategories.find(c => c.id === activeCategory)?.name}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">
+                {aiToolCategories.find(c => c.id === activeCategory)?.name}
+              </Badge>
+              <ConversationHistory
+                currentMessages={messages}
+                currentCategory={activeCategory}
+                onLoadConversation={handleLoadConversation}
+              />
+              <AISettingsModal
+                settings={aiSettings}
+                onSettingsChange={handleSettingsChange}
+                availableProviders={aiClient.getAvailableProviders()}
+              />
+            </div>
           </div>
         </CardHeader>
         
         <CardContent className="flex-1 flex flex-col p-0">
-          <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`flex max-w-[80%] ${
-                      message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
-                    }`}
-                  >
-                    <div
-                      className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                        message.role === 'user' 
-                          ? 'bg-primary text-primary-foreground ml-2' 
-                          : 'bg-muted mr-2'
-                      }`}
-                    >
-                      {message.role === 'user' ? (
-                        <UserIcon className="h-4 w-4" />
-                      ) : (
-                        <Bot className="h-4 w-4" />
-                      )}
-                    </div>
-                    <div
-                      className={`rounded-lg px-4 py-2 ${
-                        message.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted'
-                      }`}
-                    >
-                      {message.isImage && message.imageUrl ? (
-                        <div className="space-y-2">
-                          <img 
-                            src={message.imageUrl} 
-                            alt="Generated image" 
-                            className="max-w-full h-auto rounded-lg"
-                          />
-                          <div className="text-sm">
-                            Generated image: {message.content}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-sm whitespace-pre-wrap">{message.content}</div>
-                      )}
-                      <div className="text-xs opacity-70 mt-1">
-                        {message.timestamp.toLocaleTimeString()}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="flex">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-muted mr-2 flex items-center justify-center">
-                      <Bot className="h-4 w-4" />
-                    </div>
-                    <div className="bg-muted rounded-lg px-4 py-2">
-                      <div className="flex space-x-1">
-                        <Skeleton className="h-2 w-2 rounded-full animate-pulse" />
-                        <Skeleton className="h-2 w-2 rounded-full animate-pulse delay-100" />
-                        <Skeleton className="h-2 w-2 rounded-full animate-pulse delay-200" />
-                      </div>
-                      <div className="text-xs mt-2 text-muted-foreground">
-                        AI is thinking...
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
+          <AIChatHistory 
+            messages={messages}
+            isLoading={isLoading}
+          />
           
-          <div className="border-t p-4">
-            {activeCategory === 'image' ? (
-              <div className="flex space-x-2">
-                <Input
-                  value={imagePrompt}
-                  onChange={(e) => setImagePrompt(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Describe the image you want to generate..."
-                  className="flex-1"
-                  disabled={isLoading}
-                />
-                <Button
-                  onClick={handleImageGeneration}
-                  disabled={!imagePrompt.trim() || isLoading}
-                  size="icon"
-                >
-                  <ImageIcon className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
-              <div className="flex space-x-2">
-                <Textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder={`Ask your AI assistant about ${activeCategory === 'general' ? 'anything' : activeCategory}...`}
-                  className="flex-1 min-h-[60px] max-h-[120px]"
-                  disabled={isLoading}
-                />
-                <Button
-                  onClick={handleSend}
-                  disabled={!input.trim() || isLoading}
-                  size="icon"
-                  className="h-[60px] w-[60px]"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-            <p className="text-xs text-muted-foreground mt-2">
-              Press Enter to send, Shift+Enter for new line
-            </p>
-          </div>
+          <AIInputBox
+            activeCategory={activeCategory}
+            onSendMessage={handleSendMessage}
+            onGenerateImage={handleImageGeneration}
+            isLoading={isLoading}
+          />
         </CardContent>
       </Card>
     </div>
