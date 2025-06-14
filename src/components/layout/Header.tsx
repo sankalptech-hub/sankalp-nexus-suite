@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
 
@@ -25,9 +26,11 @@ const Header = () => {
             </a>
           ))}
         </nav>
-        <Button>
-          Client Login
-          <LogIn className="ml-2 h-4 w-4" />
+        <Button asChild>
+          <Link to="/auth">
+            Client Login
+            <LogIn className="ml-2 h-4 w-4" />
+          </Link>
         </Button>
       </div>
     </header>
