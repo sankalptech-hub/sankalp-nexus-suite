@@ -1,30 +1,53 @@
-import { useState } from 'react';
+
+import { useState, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Calendar, User as UserIcon } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import ProjectCard from '@/components/projects/ProjectCard';
+import ProjectEditModal from '@/components/projects/ProjectEditModal';
+import ProjectFilters from '@/components/projects/ProjectFilters';
+import DeleteConfirmDialog from '@/components/projects/DeleteConfirmDialog';
+import type { Database } from '@/integrations/supabase/types';
+
+type Project = Database['public']['Tables']['projects']['Row'];
+type ProjectStatus = Database['public']['Enums']['project_status'];
 
 const Projects = () => {
   const { user } = useOutletContext<{ user: User }>();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({
+  
+  // Create project modal state
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [createFormData, setCreateFormData] = useState({
     name: '',
     description: '',
-    status: 'Planning' as const,
+    status: 'Planning' as ProjectStatus,
   });
+
+  // Edit project modal state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+
+  // Delete confirmation state
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deletingProject, setDeletingProject] = useState<Project | null>(null);
+
+  // Filter and sort state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ['projects', user?.id],
@@ -40,8 +63,47 @@ const Projects = () => {
     },
   });
 
+  // Filter and sort projects
+  const filteredAndSortedProjects = useMemo(() => {
+    if (!projects) return [];
+
+    let filtered = projects.filter((project) => {
+      const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (project.description?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
+      const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+
+    filtered.sort((a, b) => {
+      let aValue: string | Date;
+      let bValue: string | Date;
+
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        case 'created_at':
+        default:
+          aValue = new Date(a.created_at);
+          bValue = new Date(b.created_at);
+          break;
+      }
+
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return filtered;
+  }, [projects, searchTerm, statusFilter, sortBy, sortOrder]);
+
   const createProjectMutation = useMutation({
-    mutationFn: async (projectData: typeof formData) => {
+    mutationFn: async (projectData: typeof createFormData) => {
       const { data, error } = await supabase
         .from('projects')
         .insert([{ ...projectData, client_id: user?.id }])
@@ -53,8 +115,8 @@ const Projects = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      setIsDialogOpen(false);
-      setFormData({ name: '', description: '', status: 'Planning' });
+      setIsCreateDialogOpen(false);
+      setCreateFormData({ name: '', description: '', status: 'Planning' });
       toast({
         title: 'Success',
         description: 'Project created successfully',
@@ -70,9 +132,97 @@ const Projects = () => {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const updateProjectMutation = useMutation({
+    mutationFn: async ({ id, ...projectData }: { id: string } & { name: string; description: string; status: ProjectStatus }) => {
+      const { data, error } = await supabase
+        .from('projects')
+        .update(projectData)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      setIsEditModalOpen(false);
+      setEditingProject(null);
+      toast({
+        title: 'Success',
+        description: 'Project updated successfully',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update project',
+        variant: 'destructive',
+      });
+      console.error('Error updating project:', error);
+    },
+  });
+
+  const deleteProjectMutation = useMutation({
+    mutationFn: async (projectId: string) => {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      setIsDeleteDialogOpen(false);
+      setDeletingProject(null);
+      toast({
+        title: 'Success',
+        description: 'Project deleted successfully',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete project',
+        variant: 'destructive',
+      });
+      console.error('Error deleting project:', error);
+    },
+  });
+
+  const completeProjectMutation = useMutation({
+    mutationFn: async (projectId: string) => {
+      const { data, error } = await supabase
+        .from('projects')
+        .update({ status: 'Completed' as ProjectStatus })
+        .eq('id', projectId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      toast({
+        title: 'Success',
+        description: 'Project marked as completed',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to complete project',
+        variant: 'destructive',
+      });
+      console.error('Error completing project:', error);
+    },
+  });
+
+  const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
+    if (!createFormData.name.trim()) {
       toast({
         title: 'Error',
         description: 'Project name is required',
@@ -80,17 +230,33 @@ const Projects = () => {
       });
       return;
     }
-    createProjectMutation.mutate(formData);
+    createProjectMutation.mutate(createFormData);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Planning': return 'bg-blue-100 text-blue-800';
-      case 'In Progress': return 'bg-yellow-100 text-yellow-800';
-      case 'Completed': return 'bg-green-100 text-green-800';
-      case 'On Hold': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const handleEdit = (project: Project) => {
+    setEditingProject(project);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSave = (projectData: { name: string; description: string; status: ProjectStatus }) => {
+    if (editingProject) {
+      updateProjectMutation.mutate({ id: editingProject.id, ...projectData });
     }
+  };
+
+  const handleDelete = (project: Project) => {
+    setDeletingProject(project);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deletingProject) {
+      deleteProjectMutation.mutate(deletingProject.id);
+    }
+  };
+
+  const handleComplete = (project: Project) => {
+    completeProjectMutation.mutate(project.id);
   };
 
   return (
@@ -102,7 +268,7 @@ const Projects = () => {
             Manage and track your projects with Sankalp Tech
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -116,14 +282,14 @@ const Projects = () => {
                 Add a new project to track progress and collaborate with our team.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleCreateSubmit}>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="name">Project Name</Label>
                   <Input
                     id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    value={createFormData.name}
+                    onChange={(e) => setCreateFormData({ ...createFormData, name: e.target.value })}
                     placeholder="Enter project name"
                   />
                 </div>
@@ -131,14 +297,14 @@ const Projects = () => {
                   <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    value={createFormData.description}
+                    onChange={(e) => setCreateFormData({ ...createFormData, description: e.target.value })}
                     placeholder="Describe your project"
                   />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="status">Initial Status</Label>
-                  <Select value={formData.status} onValueChange={(value: any) => setFormData({ ...formData, status: value })}>
+                  <Select value={createFormData.status} onValueChange={(value: ProjectStatus) => setCreateFormData({ ...createFormData, status: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
@@ -160,53 +326,72 @@ const Projects = () => {
         </Dialog>
       </div>
 
+      <ProjectFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        sortBy={sortBy}
+        onSortByChange={setSortBy}
+        sortOrder={sortOrder}
+        onSortOrderChange={setSortOrder}
+      />
+
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-4 w-full mb-2" />
-                <Skeleton className="h-4 w-2/3" />
-              </CardContent>
-            </Card>
+            <div key={i} className="p-6 border rounded-lg">
+              <Skeleton className="h-6 w-3/4 mb-2" />
+              <Skeleton className="h-4 w-1/2 mb-4" />
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
           ))}
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {projects?.map((project) => (
-            <Card key={project.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{project.name}</CardTitle>
-                  <Badge className={getStatusColor(project.status)}>
-                    {project.status}
-                  </Badge>
-                </div>
-                <CardDescription>{project.description || 'No description provided'}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center text-sm text-muted-foreground mb-2">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Created {new Date(project.created_at).toLocaleDateString()}
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <UserIcon className="mr-2 h-4 w-4" />
-                  Client Project
-                </div>
-              </CardContent>
-            </Card>
+          {filteredAndSortedProjects?.map((project) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onComplete={handleComplete}
+            />
           ))}
-          {projects?.length === 0 && (
+          {filteredAndSortedProjects?.length === 0 && (
             <div className="col-span-full text-center py-12">
-              <p className="text-muted-foreground">No projects yet. Create your first project to get started!</p>
+              <p className="text-muted-foreground">
+                {projects?.length === 0 
+                  ? 'No projects yet. Create your first project to get started!' 
+                  : 'No projects match your current filters.'}
+              </p>
             </div>
           )}
         </div>
       )}
+
+      <ProjectEditModal
+        project={editingProject}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingProject(null);
+        }}
+        onSave={handleEditSave}
+        isLoading={updateProjectMutation.isPending}
+      />
+
+      <DeleteConfirmDialog
+        project={deletingProject}
+        isOpen={isDeleteDialogOpen}
+        onClose={() => {
+          setIsDeleteDialogOpen(false);
+          setDeletingProject(null);
+        }}
+        onConfirm={handleDeleteConfirm}
+        isLoading={deleteProjectMutation.isPending}
+      />
     </div>
   );
 };
