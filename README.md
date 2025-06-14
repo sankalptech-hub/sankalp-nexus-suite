@@ -1,4 +1,5 @@
 
+
 # Sankalp Tech & Solutions Dashboard
 
 A modern, responsive dashboard application built with React, TypeScript, and Tailwind CSS for Sankalp Tech & Solution Inc.
@@ -38,7 +39,7 @@ A modern, responsive dashboard application built with React, TypeScript, and Tai
 - **Frontend**: React 18, TypeScript, Vite
 - **Styling**: Tailwind CSS, Shadcn/ui components
 - **Backend**: Supabase (Database, Auth, Storage)
-- **AI Integration**: OpenAI API, Groq API
+- **AI Integration**: Groq API (Default), OpenAI API (Fallback)
 - **Icons**: Lucide React
 - **Charts**: Recharts
 - **State Management**: React Query (TanStack Query)
@@ -52,30 +53,62 @@ Create a `.env.local` file in the root directory with the following variables:
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-# AI Configuration
-VITE_OPENAI_API_KEY=your_openai_api_key_here
+# AI Configuration (Groq is the default provider)
 VITE_GROQ_API_KEY=your_groq_api_key_here
+VITE_OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-### Getting API Keys
+### Getting AI API Keys
 
-#### OpenAI API Key
+#### Groq API Key (Default Provider - Free & Fast)
+1. Go to [Groq Console](https://console.groq.com/keys)
+2. Sign in to your account
+3. Generate a new API key
+4. Copy the key and add it to your `.env.local` file
+
+**Why Groq?** Groq provides fast, free AI inference with models like Llama 3, making it perfect for most use cases without API costs.
+
+#### OpenAI API Key (Fallback Provider)
 1. Go to [OpenAI Platform](https://platform.openai.com/api-keys)
 2. Sign in to your account
 3. Click "Create new secret key"
 4. Copy the key and add it to your `.env.local` file
 
-#### Groq API Key
-1. Go to [Groq Console](https://console.groq.com/keys)
-2. Sign in to your account
-3. Generate a new API key
-4. Copy the key and add it to your `.env.local` file
+**Note:** OpenAI is used as a fallback and for image generation (DALL-E). It's a paid service but offers more specialized features.
 
 #### Supabase Configuration
 1. Create a new project at [Supabase](https://supabase.com)
 2. Go to Settings > API
 3. Copy the Project URL and anon public key
 4. Add them to your `.env.local` file
+
+## AI Provider Configuration
+
+The application uses a smart AI provider system:
+
+1. **Default**: Groq (fast, free, Llama 3 models)
+2. **Fallback**: OpenAI (when Groq is unavailable)
+3. **Image Generation**: OpenAI DALL-E (Groq doesn't support images)
+
+### Available AI Models
+
+#### Groq Models (Default)
+- `llama3-8b-8192` - Fast 8B parameter model (default)
+- `llama3-70b-8192` - More powerful 70B parameter model
+- `mixtral-8x7b-32768` - Mixtral model with large context
+
+#### OpenAI Models (Fallback)
+- `gpt-4o-mini` - Fast and cost-effective
+- `gpt-4o` - Most capable GPT model
+
+### Adding New AI Providers
+
+To add a new AI provider:
+
+1. Update `src/lib/ai/aiClient.ts` with the new provider's API integration
+2. Add the provider to the `AISettings` interface
+3. Update the settings modal with new provider options
+4. Add environment variables for the new provider's API keys
 
 ## Installation
 
@@ -126,10 +159,10 @@ src/
 
 ## AI Integration
 
-The application supports multiple AI providers:
+The application supports multiple AI providers with smart fallback:
 
-- **OpenAI**: GPT models for text generation and DALL-E for images
-- **Groq**: Fast inference for Llama models
+- **Groq**: Primary provider for fast, free AI responses
+- **OpenAI**: Fallback for text and primary for image generation
 
 ### Blog Writer Usage
 
@@ -152,3 +185,4 @@ The application supports multiple AI providers:
 ## License
 
 This project is proprietary and confidential to Sankalp Tech & Solution Inc.
+

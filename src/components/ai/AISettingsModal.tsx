@@ -35,13 +35,14 @@ export const AISettingsModal = ({
   };
 
   const modelOptions = {
+    groq: [
+      { value: 'llama3-8b-8192', label: 'Llama 3 8B (Fast & Default)' },
+      { value: 'llama3-70b-8192', label: 'Llama 3 70B (Advanced)' },
+      { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B (Powerful)' },
+    ],
     openai: [
       { value: 'gpt-4o-mini', label: 'GPT-4o Mini (Fast & Cheap)' },
       { value: 'gpt-4o', label: 'GPT-4o (Advanced)' },
-    ],
-    groq: [
-      { value: 'llama3-8b-8192', label: 'Llama 3 8B (Fast)' },
-      { value: 'llama3-70b-8192', label: 'Llama 3 70B (Advanced)' },
     ],
   };
 
@@ -57,7 +58,7 @@ export const AISettingsModal = ({
         <DialogHeader>
           <DialogTitle>AI Settings</DialogTitle>
           <DialogDescription>
-            Configure your AI assistant preferences
+            Configure your AI assistant preferences. Groq is the default provider for fast, free AI responses.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -73,12 +74,12 @@ export const AISettingsModal = ({
                 <SelectValue placeholder="Select provider" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="auto">Auto (OpenAI → Groq)</SelectItem>
+                <SelectItem value="auto">Auto (Groq → OpenAI)</SelectItem>
+                {availableProviders.includes('Groq') && (
+                  <SelectItem value="groq">Groq Only (Recommended)</SelectItem>
+                )}
                 {availableProviders.includes('OpenAI') && (
                   <SelectItem value="openai">OpenAI Only</SelectItem>
-                )}
-                {availableProviders.includes('Groq') && (
-                  <SelectItem value="groq">Groq Only</SelectItem>
                 )}
               </SelectContent>
             </Select>
@@ -96,12 +97,12 @@ export const AISettingsModal = ({
                 <SelectValue placeholder="Select model" />
               </SelectTrigger>
               <SelectContent>
-                {tempSettings.provider !== 'groq' && modelOptions.openai.map(model => (
+                {tempSettings.provider !== 'openai' && modelOptions.groq.map(model => (
                   <SelectItem key={model.value} value={model.value}>
                     {model.label}
                   </SelectItem>
                 ))}
-                {tempSettings.provider !== 'openai' && modelOptions.groq.map(model => (
+                {tempSettings.provider !== 'groq' && modelOptions.openai.map(model => (
                   <SelectItem key={model.value} value={model.value}>
                     {model.label}
                   </SelectItem>

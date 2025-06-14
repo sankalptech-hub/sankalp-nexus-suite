@@ -29,7 +29,7 @@ const AITools = () => {
     {
       id: '1',
       role: 'assistant',
-      content: `Hello! I'm your AI assistant from Sankalp Tech. I can help you with code, documentation, email writing, image generation, blog writing, and general tech questions. 
+      content: `Hello! I'm your AI assistant from Sankalp Tech, powered by Groq for fast, efficient responses. I can help you with code, documentation, email writing, image generation, blog writing, and general tech questions. 
 
 Available providers: ${aiClient.getAvailableProviders().join(', ') || 'None configured - please set your API keys'}
 
@@ -40,9 +40,9 @@ How can I assist you today?`,
   const [isLoading, setIsLoading] = useState(false);
   const [activeCategory, setActiveCategory] = useState('general');
   const [aiSettings, setAISettings] = useState<AISettings>({
-    model: 'gpt-4o-mini',
+    model: 'llama3-8b-8192', // Default to Groq Llama 3 8B
     temperature: 0.7,
-    provider: 'auto',
+    provider: 'auto', // This will prioritize Groq
   });
 
   const aiToolCategories = [

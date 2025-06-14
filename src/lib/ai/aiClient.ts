@@ -27,7 +27,7 @@ class AIClient {
   }
 
   /**
-   * Main function to ask AI - tries OpenAI first, falls back to Groq
+   * Main function to ask AI - tries Groq first, falls back to OpenAI
    */
   async askAI(
     messages: AIMessage[],
@@ -40,30 +40,30 @@ class AIClient {
   ): Promise<AIResponse> {
     const { model, temperature = 0.7, maxTokens = 1000, provider = 'auto' } = options;
 
-    // Try OpenAI first if available and not specifically requesting Groq
-    if (provider !== 'groq' && this.openaiApiKey) {
+    // Try Groq first if available and not specifically requesting OpenAI
+    if (provider !== 'openai' && this.groqApiKey) {
       try {
-        return await this.callOpenAI(messages, {
-          model: model || 'gpt-4o-mini',
+        return await this.callGroq(messages, {
+          model: model || 'llama3-8b-8192',
           temperature,
           maxTokens,
         });
       } catch (error) {
-        console.warn('OpenAI failed, trying Groq:', error);
-        if (provider === 'openai') throw error;
+        console.warn('Groq failed, trying OpenAI:', error);
+        if (provider === 'groq') throw error;
       }
     }
 
-    // Fallback to Groq or if specifically requested
-    if (this.groqApiKey) {
-      return await this.callGroq(messages, {
-        model: model || 'llama3-8b-8192',
+    // Fallback to OpenAI or if specifically requested
+    if (this.openaiApiKey) {
+      return await this.callOpenAI(messages, {
+        model: model || 'gpt-4o-mini',
         temperature,
         maxTokens,
       });
     }
 
-    throw new Error('No AI API keys configured. Please set VITE_OPENAI_API_KEY or VITE_GROQ_API_KEY in your environment.');
+    throw new Error('No AI API keys configured. Please set VITE_GROQ_API_KEY or VITE_OPENAI_API_KEY in your environment.');
   }
 
   /**
@@ -182,7 +182,7 @@ class AIClient {
    * Check if any AI service is available
    */
   isAvailable(): boolean {
-    return !!(this.openaiApiKey || this.groqApiKey);
+    return !!(this.groqApiKey || this.openaiApiKey);
   }
 
   /**
@@ -190,8 +190,8 @@ class AIClient {
    */
   getAvailableProviders(): string[] {
     const providers = [];
-    if (this.openaiApiKey) providers.push('OpenAI');
     if (this.groqApiKey) providers.push('Groq');
+    if (this.openaiApiKey) providers.push('OpenAI');
     return providers;
   }
 }
