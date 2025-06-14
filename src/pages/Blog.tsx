@@ -21,28 +21,34 @@ const Blog = () => {
 
   const staticPosts = [
     {
+      id: "static-1",
       title: "Building Scalable React Applications",
       excerpt: "Best practices for creating React applications that can grow with your business needs.",
       image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=250&fit=crop",
       date: "2025-06-05",
       readTime: "5 min read",
-      category: "Development"
+      category: "Development",
+      isPublished: false
     },
     {
+      id: "static-2",
       title: "CRM Implementation Success Stories",
       excerpt: "How our clients transformed their customer relationships with custom CRM solutions.",
       image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=250&fit=crop",
       date: "2025-05-28",
       readTime: "6 min read",
-      category: "Case Study"
+      category: "Case Study",
+      isPublished: false
     },
     {
+      id: "static-3",
       title: "Cloud Migration: A Complete Guide",
       excerpt: "Everything you need to know about moving your business to the cloud safely and efficiently.",
       image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=250&fit=crop",
       date: "2025-05-22",
       readTime: "10 min read",
-      category: "Cloud"
+      category: "Cloud",
+      isPublished: false
     },
   ];
 
@@ -158,8 +164,8 @@ const Blog = () => {
                   </div>
                 )}
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                  {allPosts.map((post, index) => (
-                    <Card key={post.id || index} className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+                  {allPosts.map((post) => (
+                    <Card key={post.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
                       <div className="relative overflow-hidden">
                         <img 
                           src={post.image} 
