@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,28 +8,40 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bot, Send, User as UserIcon, Sparkles, Code, FileText, Mail } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Bot, Send, User as UserIcon, Sparkles, Code, FileText, Mail, Image as ImageIcon, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { aiClient, type AIMessage, generateImage } from '@/lib/ai/aiClient';
+import { aiActions, executeAIAction, getActionsByCategory } from '@/lib/ai/aiActions';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  isImage?: boolean;
+  imageUrl?: string;
 }
 
 const AITools = () => {
   const { user } = useOutletContext<{ user: User }>();
   const { toast } = useToast();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'assistant',
-      content: 'Hello! I\'m your AI assistant from Sankalp Tech. I can help you with code, documentation, email writing, and general tech questions. How can I assist you today?',
+      content: `Hello! I'm your AI assistant from Sankalp Tech. I can help you with code, documentation, email writing, image generation, and general tech questions. 
+
+Available providers: ${aiClient.getAvailableProviders().join(', ') || 'None configured - please set your API keys'}
+
+How can I assist you today?`,
       timestamp: new Date(),
     }
   ]);
   const [input, setInput] = useState('');
+  const [imagePrompt, setImagePrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [activeCategory, setActiveCategory] = useState('general');
 
@@ -58,10 +70,35 @@ const AITools = () => {
       icon: Mail,
       description: 'Compose professional emails and communications',
     },
+    {
+      id: 'image',
+      name: 'Image Generation',
+      icon: ImageIcon,
+      description: 'Generate images using DALL-E',
+    },
   ];
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
+    }
+  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
+
+    if (!aiClient.isAvailable()) {
+      toast({
+        title: 'AI Not Available',
+        description: 'Please configure your AI API keys (VITE_OPENAI_API_KEY or VITE_GROQ_API_KEY) to use this feature.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -75,21 +112,58 @@ const AITools = () => {
     setIsLoading(true);
 
     try {
-      // Simulate AI response - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Convert messages to AI format
+      const aiMessages: AIMessage[] = messages
+        .filter(msg => !msg.isImage) // Exclude image messages for now
+        .slice(-10) // Keep last 10 messages for context
+        .map(msg => ({
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content,
+        }));
+
+      // Add system prompt based on category
+      const systemPrompts = {
+        general: 'You are a helpful AI assistant for Sankalp Tech & Solution Inc., a technology company focused on web development, AI automation, CRM systems, and business automation.',
+        code: 'You are a senior software developer expert in React, Next.js, TypeScript, Tailwind CSS, and modern web development. Provide clear, practical coding solutions.',
+        documentation: 'You are a technical writer. Create clear, comprehensive documentation with examples and best practices.',
+        email: 'You are a professional communication assistant. Write clear, polite, and effective business emails.',
+        image: 'You are helping with image generation requests.',
+      };
+
+      if (systemPrompts[activeCategory as keyof typeof systemPrompts]) {
+        aiMessages.unshift({
+          role: 'system',
+          content: systemPrompts[activeCategory as keyof typeof systemPrompts],
+        });
+      }
+
+      // Add the new user message
+      aiMessages.push({
+        role: 'user',
+        content: input,
+      });
+
+      const response = await aiClient.askAI(aiMessages);
       
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: generateMockResponse(input, activeCategory),
+        content: response.content,
         timestamp: new Date(),
       };
 
       setMessages(prev => [...prev, aiResponse]);
+
+      toast({
+        title: 'AI Response',
+        description: `Response from ${response.provider} (${response.model})`,
+      });
+
     } catch (error) {
+      console.error('AI request failed:', error);
       toast({
         title: 'Error',
-        description: 'Failed to get AI response. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to get AI response. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -97,73 +171,136 @@ const AITools = () => {
     }
   };
 
-  const generateMockResponse = (input: string, category: string) => {
-    const responses = {
-      general: `I understand you're asking about "${input}". As an AI assistant from Sankalp Tech, I'm here to help with various tasks including development, automation, and business solutions. What specific aspect would you like me to focus on?`,
-      code: `Great question about "${input}"! Here's how I can help with your coding needs:
+  const handleImageGeneration = async () => {
+    if (!imagePrompt.trim()) return;
 
-\`\`\`javascript
-// Example solution approach
-function handleUserRequest(input) {
-  // Process the input
-  const result = processInput(input);
-  return result;
-}
-\`\`\`
-
-Would you like me to elaborate on any specific part or help with a different coding challenge?`,
-      documentation: `I can help you create documentation for "${input}". Here's a suggested structure:
-
-## Overview
-Brief description of the feature/component
-
-## Usage
-Step-by-step instructions
-
-## Examples
-Code examples and use cases
-
-## API Reference
-Detailed parameter descriptions
-
-Would you like me to expand on any of these sections?`,
-      email: `I can help you write a professional email about "${input}". Here's a draft:
-
-**Subject:** [Your Subject Here]
-
-Dear [Recipient],
-
-I hope this email finds you well. I am writing to discuss ${input.toLowerCase()}.
-
-[Body content based on your specific needs]
-
-Best regards,
-${user?.user_metadata?.full_name || 'Your Name'}
-
-Would you like me to adjust the tone or add specific details?`
+    setIsLoading(true);
+    
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: `Generate image: ${imagePrompt}`,
+      timestamp: new Date(),
     };
 
-    return responses[category as keyof typeof responses] || responses.general;
+    setMessages(prev => [...prev, userMessage]);
+    setImagePrompt('');
+
+    try {
+      const result = await generateImage(imagePrompt);
+      
+      const imageMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: result.revisedPrompt || imagePrompt,
+        timestamp: new Date(),
+        isImage: true,
+        imageUrl: result.imageUrl,
+      };
+
+      setMessages(prev => [...prev, imageMessage]);
+
+      toast({
+        title: 'Image Generated',
+        description: 'Your image has been created successfully!',
+      });
+
+    } catch (error) {
+      console.error('Image generation failed:', error);
+      toast({
+        title: 'Image Generation Failed',
+        description: error instanceof Error ? error.message : 'Failed to generate image. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleQuickAction = async (actionId: string) => {
+    if (!aiClient.isAvailable()) {
+      toast({
+        title: 'AI Not Available',
+        description: 'Please configure your AI API keys to use this feature.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const action = aiActions.find(a => a.id === actionId);
+      if (!action) return;
+
+      // Add user message showing the action
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        role: 'user',
+        content: `Quick Action: ${action.name}`,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, userMessage]);
+
+      const response = await executeAIAction(actionId);
+      
+      const aiResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: response,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, aiResponse]);
+
+      toast({
+        title: 'Quick Action Completed',
+        description: action.name,
+      });
+
+    } catch (error) {
+      console.error('Quick action failed:', error);
+      toast({
+        title: 'Action Failed',
+        description: error instanceof Error ? error.message : 'Failed to execute action.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      if (activeCategory === 'image') {
+        handleImageGeneration();
+      } else {
+        handleSend();
+      }
     }
   };
+
+  const categoryActions = getActionsByCategory(activeCategory);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">AI Tools</h1>
         <p className="text-muted-foreground mt-2">
-          Access powerful AI assistants to help with your development and business needs
+          Access powerful AI assistants powered by OpenAI and Groq
         </p>
+        {!aiClient.isAvailable() && (
+          <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <p className="text-yellow-800 dark:text-yellow-200">
+              ⚠️ AI services not configured. Please set your API keys in environment variables.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* AI Tool Categories */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {aiToolCategories.map((category) => {
           const Icon = category.icon;
           return (
@@ -190,6 +327,44 @@ Would you like me to adjust the tone or add specific details?`
         })}
       </div>
 
+      {/* Quick Actions */}
+      {categoryActions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              Quick Actions
+            </CardTitle>
+            <CardDescription>
+              One-click AI actions for common tasks
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+              {categoryActions.map((action) => (
+                <Button
+                  key={action.id}
+                  variant="outline"
+                  className="justify-start h-auto p-3"
+                  onClick={() => handleQuickAction(action.id)}
+                  disabled={isLoading}
+                >
+                  <div className="text-left">
+                    <div className="flex items-center gap-2 font-medium">
+                      <span>{action.icon}</span>
+                      {action.name}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {action.description}
+                    </div>
+                  </div>
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Chat Interface */}
       <Card className="h-[600px] flex flex-col">
         <CardHeader className="border-b">
@@ -205,7 +380,7 @@ Would you like me to adjust the tone or add specific details?`
         </CardHeader>
         
         <CardContent className="flex-1 flex flex-col p-0">
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
             <div className="space-y-4">
               {messages.map((message) => (
                 <div
@@ -237,7 +412,20 @@ Would you like me to adjust the tone or add specific details?`
                           : 'bg-muted'
                       }`}
                     >
-                      <div className="text-sm whitespace-pre-wrap">{message.content}</div>
+                      {message.isImage && message.imageUrl ? (
+                        <div className="space-y-2">
+                          <img 
+                            src={message.imageUrl} 
+                            alt="Generated image" 
+                            className="max-w-full h-auto rounded-lg"
+                          />
+                          <div className="text-sm">
+                            Generated image: {message.content}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-sm whitespace-pre-wrap">{message.content}</div>
+                      )}
                       <div className="text-xs opacity-70 mt-1">
                         {message.timestamp.toLocaleTimeString()}
                       </div>
@@ -253,9 +441,12 @@ Would you like me to adjust the tone or add specific details?`
                     </div>
                     <div className="bg-muted rounded-lg px-4 py-2">
                       <div className="flex space-x-1">
-                        <Skeleton className="h-2 w-2 rounded-full" />
-                        <Skeleton className="h-2 w-2 rounded-full" />
-                        <Skeleton className="h-2 w-2 rounded-full" />
+                        <Skeleton className="h-2 w-2 rounded-full animate-pulse" />
+                        <Skeleton className="h-2 w-2 rounded-full animate-pulse delay-100" />
+                        <Skeleton className="h-2 w-2 rounded-full animate-pulse delay-200" />
+                      </div>
+                      <div className="text-xs mt-2 text-muted-foreground">
+                        AI is thinking...
                       </div>
                     </div>
                   </div>
@@ -265,24 +456,44 @@ Would you like me to adjust the tone or add specific details?`
           </ScrollArea>
           
           <div className="border-t p-4">
-            <div className="flex space-x-2">
-              <Textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={`Ask your AI assistant about ${activeCategory === 'general' ? 'anything' : activeCategory}...`}
-                className="flex-1 min-h-[60px] max-h-[120px]"
-                disabled={isLoading}
-              />
-              <Button
-                onClick={handleSend}
-                disabled={!input.trim() || isLoading}
-                size="icon"
-                className="h-[60px] w-[60px]"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
+            {activeCategory === 'image' ? (
+              <div className="flex space-x-2">
+                <Input
+                  value={imagePrompt}
+                  onChange={(e) => setImagePrompt(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Describe the image you want to generate..."
+                  className="flex-1"
+                  disabled={isLoading}
+                />
+                <Button
+                  onClick={handleImageGeneration}
+                  disabled={!imagePrompt.trim() || isLoading}
+                  size="icon"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex space-x-2">
+                <Textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={`Ask your AI assistant about ${activeCategory === 'general' ? 'anything' : activeCategory}...`}
+                  className="flex-1 min-h-[60px] max-h-[120px]"
+                  disabled={isLoading}
+                />
+                <Button
+                  onClick={handleSend}
+                  disabled={!input.trim() || isLoading}
+                  size="icon"
+                  className="h-[60px] w-[60px]"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
             <p className="text-xs text-muted-foreground mt-2">
               Press Enter to send, Shift+Enter for new line
             </p>

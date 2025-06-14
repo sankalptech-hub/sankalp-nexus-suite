@@ -1,3 +1,4 @@
+
 # Welcome to your Lovable project
 
 ## Project info
@@ -50,6 +51,43 @@ npm run dev
 - Click on "New codespace" to launch a new Codespace environment.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
 
+## AI Configuration
+
+This project includes powerful AI tools that can connect to OpenAI and Groq APIs for enhanced functionality.
+
+### Setting up AI Services
+
+1. **Copy the environment file:**
+   ```sh
+   cp .env.example .env
+   ```
+
+2. **Get your API keys:**
+   - **OpenAI**: Visit [OpenAI API Keys](https://platform.openai.com/api-keys) to create an API key
+   - **Groq**: Visit [Groq Console](https://console.groq.com/keys) to create an API key
+
+3. **Add your keys to `.env`:**
+   ```env
+   VITE_OPENAI_API_KEY=your_openai_api_key_here
+   VITE_GROQ_API_KEY=your_groq_api_key_here
+   ```
+
+### AI Features
+
+- **Chat Assistant**: General conversation and technical help
+- **Code Assistant**: Debugging, code review, and development help
+- **Documentation**: Generate technical documentation
+- **Email Writer**: Draft professional emails
+- **Image Generation**: Create images using DALL-E (requires OpenAI API key)
+- **Quick Actions**: One-click AI actions for common tasks
+
+### Usage Notes
+
+- The AI client will automatically try OpenAI first, then fall back to Groq if available
+- Image generation requires an OpenAI API key
+- You can use either API key independently or both together for redundancy
+- All AI conversations are client-side only and not stored on servers
+
 ## What technologies are used for this project?
 
 This project is built with:
@@ -59,6 +97,8 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase (for backend functionality)
+- OpenAI & Groq APIs (for AI features)
 
 ## How can I deploy this project?
 
