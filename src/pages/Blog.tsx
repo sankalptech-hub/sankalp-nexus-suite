@@ -4,9 +4,12 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Clock, ArrowRight } from 'lucide-react';
+import { Calendar, Clock, ArrowRight, Loader2 } from 'lucide-react';
+import { useBlogPosts } from '@/hooks/useBlogPosts';
 
 const Blog = () => {
+  const { posts: publishedPosts, loading: postsLoading, error: postsError } = useBlogPosts();
+
   const featuredPost = {
     title: "The Future of AI in Business Automation",
     excerpt: "Exploring how artificial intelligence is reshaping the way businesses operate, from customer service to data analysis and everything in between.",
@@ -16,7 +19,7 @@ const Blog = () => {
     category: "AI & Automation"
   };
 
-  const posts = [
+  const staticPosts = [
     {
       title: "Building Scalable React Applications",
       excerpt: "Best practices for creating React applications that can grow with your business needs.",
@@ -41,31 +44,30 @@ const Blog = () => {
       readTime: "10 min read",
       category: "Cloud"
     },
-    {
-      title: "Mobile App Development Trends 2025",
-      excerpt: "The latest trends shaping mobile application development and user experiences.",
-      image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=250&fit=crop",
-      date: "2025-05-15",
-      readTime: "7 min read",
-      category: "Mobile"
-    },
-    {
-      title: "Data Analytics for Business Growth",
-      excerpt: "Leveraging data analytics to make informed decisions and drive business growth.",
-      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop",
-      date: "2025-05-08",
-      readTime: "9 min read",
-      category: "Analytics"
-    },
-    {
-      title: "Cybersecurity Best Practices",
-      excerpt: "Essential security measures every business should implement to protect their digital assets.",
-      image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=400&h=250&fit=crop",
-      date: "2025-05-01",
-      readTime: "8 min read",
-      category: "Security"
-    }
   ];
+
+  // Calculate estimated read time for published posts
+  const getReadTime = (content: string) => {
+    const wordsPerMinute = 200;
+    const words = content.split(/\s+/).length;
+    const minutes = Math.ceil(words / wordsPerMinute);
+    return `${minutes} min read`;
+  };
+
+  // Format published posts to match the structure
+  const formattedPublishedPosts = publishedPosts.map(post => ({
+    id: post.id,
+    title: post.title,
+    excerpt: post.excerpt || post.content.substring(0, 150) + '...',
+    image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=250&fit=crop", // AI/Tech related image
+    date: post.published_at || post.created_at,
+    readTime: getReadTime(post.content),
+    category: post.tags?.[0] || "AI Generated",
+    isPublished: true,
+  }));
+
+  // Combine all posts (published first, then static)
+  const allPosts = [...formattedPublishedPosts, ...staticPosts];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -139,44 +141,69 @@ const Blog = () => {
         {/* Blog Grid */}
         <section className="py-16 bg-muted/30">
           <div className="container px-4 md:px-6 max-w-7xl">
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {posts.map((post) => (
-                <Card key={post.title} className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                  <div className="relative overflow-hidden">
-                    <img 
-                      src={post.image} 
-                      alt={post.title}
-                      className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <div className="absolute top-3 left-3">
-                      <span className="px-2 py-1 bg-black/50 text-white text-xs font-medium rounded-md backdrop-blur-sm">
-                        {post.category}
-                      </span>
-                    </div>
+            {postsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <span className="ml-2">Loading blog posts...</span>
+              </div>
+            ) : postsError ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">Error loading blog posts: {postsError}</p>
+              </div>
+            ) : (
+              <>
+                {publishedPosts.length > 0 && (
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold mb-4 text-primary">Latest AI-Generated Posts</h2>
                   </div>
-                  <CardContent className="p-6 space-y-4">
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(post.date).toLocaleDateString()}
+                )}
+                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                  {allPosts.map((post, index) => (
+                    <Card key={post.id || index} className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+                      <div className="relative overflow-hidden">
+                        <img 
+                          src={post.image} 
+                          alt={post.title}
+                          className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute top-3 left-3">
+                          <span className="px-2 py-1 bg-black/50 text-white text-xs font-medium rounded-md backdrop-blur-sm">
+                            {post.category}
+                          </span>
+                        </div>
+                        {post.isPublished && (
+                          <div className="absolute top-3 right-3">
+                            <span className="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded-md">
+                              AI Generated
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {post.readTime}
-                      </div>
-                    </div>
-                    <h3 className="text-xl font-bold leading-tight group-hover:text-primary transition-colors">
-                      {post.title}
-                    </h3>
-                    <p className="text-muted-foreground text-sm">{post.excerpt}</p>
-                    <div className="flex items-center text-primary font-medium group-hover:gap-3 gap-2 transition-all cursor-pointer">
-                      Read More
-                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      <CardContent className="p-6 space-y-4">
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {new Date(post.date).toLocaleDateString()}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {post.readTime}
+                          </div>
+                        </div>
+                        <h3 className="text-xl font-bold leading-tight group-hover:text-primary transition-colors">
+                          {post.title}
+                        </h3>
+                        <p className="text-muted-foreground text-sm">{post.excerpt}</p>
+                        <div className="flex items-center text-primary font-medium group-hover:gap-3 gap-2 transition-all cursor-pointer">
+                          Read More
+                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </section>
       </main>

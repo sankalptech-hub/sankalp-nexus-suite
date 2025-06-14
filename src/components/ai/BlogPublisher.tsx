@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -40,16 +39,16 @@ export const BlogPublisher = ({ blogPost }: BlogPublisherProps) => {
   const { toast } = useToast();
   const [websites, setWebsites] = useState<WebsiteConnection[]>([
     {
-      id: 'sankalp-nexus',
-      name: 'Sankalp Nexus Suite',
+      id: 'local-api',
+      name: 'Sankalp Nexus Suite (Local API)',
       url: 'https://sankalp-nexus-suite.vercel.app',
       type: 'custom',
-      apiEndpoint: 'https://sankalp-nexus-suite.vercel.app/api/blog',
+      apiEndpoint: 'https://zgytixshskvtxekxmngs.supabase.co/functions/v1/blog',
       credentials: {},
     }
   ]);
   
-  const [selectedWebsite, setSelectedWebsite] = useState<string>('sankalp-nexus');
+  const [selectedWebsite, setSelectedWebsite] = useState<string>('local-api');
   const [isPublishing, setIsPublishing] = useState(false);
   const [isAddingWebsite, setIsAddingWebsite] = useState(false);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
@@ -94,34 +93,37 @@ export const BlogPublisher = ({ blogPost }: BlogPublisherProps) => {
         title: blogPost.title,
         content: blogPost.content,
         excerpt: blogPost.content.substring(0, 200) + '...',
-        status: 'publish',
+        status: 'published',
         author: 'AI Blog Writer',
         tags: ['ai-generated', 'blog'],
-        publishedAt: new Date().toISOString(),
       };
+
+      console.log('Publishing to:', website.apiEndpoint);
+      console.log('Publishing data:', publishData);
 
       // Make the API call to publish
       const response = await fetch(website.apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpneXRpeHNoc2t2dHhla3htbmdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5MjkzODUsImV4cCI6MjA2NTUwNTM4NX0.mKA1jIfv-wpaOrTDD8nbagw0c0s7SMuqmAgcHOgvPXE',
           ...(website.credentials.apiKey && {
             'Authorization': `Bearer ${website.credentials.apiKey}`
-          }),
-          ...(website.credentials.username && website.credentials.password && {
-            'Authorization': `Basic ${btoa(`${website.credentials.username}:${website.credentials.password}`)}`
           }),
         },
         body: JSON.stringify(publishData),
       });
 
       if (!response.ok) {
+        const errorData = await response.text();
+        console.error('API Error Response:', errorData);
         throw new Error(`Publishing failed: ${response.status} ${response.statusText}`);
       }
 
       const result = await response.json();
-      const postUrl = result.url || result.permalink || `${website.url}/blog/${result.id || result.slug}`;
+      console.log('Publishing result:', result);
       
+      const postUrl = result.url || `${website.url}/blog/${result.id}`;
       setPublishedUrl(postUrl);
       
       toast({
