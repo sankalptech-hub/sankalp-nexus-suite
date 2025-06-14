@@ -11,7 +11,10 @@ import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
 import DashboardLayout from "./pages/dashboard/Layout";
-import Dashboard from "./pages/dashboard/Index";
+import Dashboard from "./pages/dashboard/Dashboard";
+import Projects from "./pages/dashboard/Projects";
+import Tickets from "./pages/dashboard/Tickets";
+import AITools from "./pages/dashboard/AITools";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +34,9 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
+            <Route path="projects" element={<Projects />} />
+            <Route path="tickets" element={<Tickets />} />
+            <Route path="ai-tools" element={<AITools />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
