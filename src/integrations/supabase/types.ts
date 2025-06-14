@@ -9,16 +9,132 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          full_name: string | null
+          id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          full_name?: string | null
+          id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          full_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          status: Database["public"]["Enums"]["project_status"]
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          status?: Database["public"]["Enums"]["project_status"]
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          status?: Database["public"]["Enums"]["project_status"]
+        }
+        Relationships: []
+      }
+      tickets: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          project_id: string | null
+          status: Database["public"]["Enums"]["ticket_status"]
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          project_id?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          project_id?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
+      is_project_client: {
+        Args: { _project_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "Admin" | "Client"
+      project_status: "Planning" | "In Progress" | "Completed" | "On Hold"
+      ticket_priority: "Low" | "Medium" | "High"
+      ticket_status: "Open" | "In Progress" | "Closed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +249,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["Admin", "Client"],
+      project_status: ["Planning", "In Progress", "Completed", "On Hold"],
+      ticket_priority: ["Low", "Medium", "High"],
+      ticket_status: ["Open", "In Progress", "Closed"],
+    },
   },
 } as const
