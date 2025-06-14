@@ -1,48 +1,72 @@
 
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Code, Settings, Book } from 'lucide-react';
+import { Code, Settings, Github, ArrowRight } from 'lucide-react';
 
 const services = [
   {
-    icon: <Code className="h-8 w-8 text-primary" />,
-    title: 'Custom Software Development',
-    description: 'Bespoke software solutions tailored to your unique business needs, from web apps to enterprise systems.',
+    icon: <Code className="h-12 w-12 text-primary" />,
+    title: 'Custom Development',
+    description: 'Bespoke web applications, mobile apps, and enterprise software tailored to your unique business requirements.',
+    features: ['React & Next.js', 'Mobile Apps', 'API Development', 'Cloud Native'],
   },
   {
-    icon: <Settings className="h-8 w-8 text-primary" />,
-    title: 'AI & ML Integration',
-    description: 'Leverage the power of artificial intelligence to automate processes, gain insights, and create smarter products.',
+    icon: <Settings className="h-12 w-12 text-primary" />,
+    title: 'AI & Automation',
+    description: 'Intelligent automation solutions that streamline operations and unlock new possibilities for your business.',
+    features: ['Process Automation', 'AI Integration', 'Machine Learning', 'ChatBot Development'],
   },
   {
-    icon: <Book className="h-8 w-8 text-primary" />,
-    title: 'Cloud & DevOps',
-    description: 'Optimize your infrastructure with our cloud migration, management, and DevOps services for scalability and efficiency.',
+    icon: <Github className="h-12 w-12 text-primary" />,
+    title: 'CRM & Dashboards',
+    description: 'Powerful customer relationship management systems and analytics dashboards for data-driven decisions.',
+    features: ['Custom CRM', 'Analytics', 'Real-time Data', 'User Management'],
   },
 ];
 
 const Services = () => {
   return (
-    <section id="services" className="w-full py-12 md:py-24 lg:py-32 bg-muted">
-      <div className="container px-4 md:px-6">
-        <div className="flex flex-col items-center justify-center space-y-4 text-center">
-          <div className="space-y-2">
-            <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Our Services</div>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">What We Do</h2>
-            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              We provide a wide range of technology services to help you achieve your business goals.
-            </p>
+    <section id="services" className="py-24 md:py-32 bg-muted/30">
+      <div className="container px-4 md:px-6 max-w-7xl">
+        <div className="text-center space-y-4 mb-16">
+          <div className="inline-flex items-center px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-sm font-medium text-primary">
+            Our Expertise
           </div>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
+            Services That
+            <span className="block text-primary">Drive Growth</span>
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            We combine cutting-edge technology with strategic thinking to deliver solutions that transform your business.
+          </p>
         </div>
-        <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:max-w-none mt-12">
-          {services.map((service) => (
-            <Card key={service.title}>
-              <CardHeader className="flex flex-col items-center text-center">
-                {service.icon}
-                <CardTitle className="mt-4">{service.title}</CardTitle>
+        
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {services.map((service, index) => (
+            <Card key={service.title} className="group relative overflow-hidden border-2 border-transparent hover:border-primary/20 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  {service.icon}
+                  <div className="text-6xl font-bold text-muted-foreground/10">
+                    0{index + 1}
+                  </div>
+                </div>
+                <CardTitle className="text-2xl font-bold mt-4">{service.title}</CardTitle>
               </CardHeader>
-              <CardContent>
-                <CardDescription className="text-center">{service.description}</CardDescription>
+              <CardContent className="space-y-6">
+                <CardDescription className="text-base leading-relaxed">{service.description}</CardDescription>
+                <div className="space-y-2">
+                  {service.features.map((feature) => (
+                    <div key={feature} className="flex items-center gap-2 text-sm">
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center text-primary font-medium group-hover:gap-3 gap-2 transition-all cursor-pointer">
+                  Learn More
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </div>
               </CardContent>
             </Card>
           ))}
