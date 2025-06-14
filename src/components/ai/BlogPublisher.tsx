@@ -10,11 +10,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Globe, Settings, Plus, Loader2, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+type WebsiteType = 'custom' | 'wordpress' | 'headless';
+
 interface WebsiteConnection {
   id: string;
   name: string;
   url: string;
-  type: 'custom' | 'wordpress' | 'headless';
+  type: WebsiteType;
   apiEndpoint: string;
   credentials: {
     apiKey?: string;
@@ -52,11 +54,11 @@ export const BlogPublisher = ({ blogPost }: BlogPublisherProps) => {
   const [isAddingWebsite, setIsAddingWebsite] = useState(false);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   
-  // New website form state
+  // New website form state - fixed type definition
   const [newWebsite, setNewWebsite] = useState({
     name: '',
     url: '',
-    type: 'custom' as const,
+    type: 'custom' as WebsiteType,
     apiEndpoint: '',
     apiKey: '',
     username: '',
@@ -241,7 +243,7 @@ export const BlogPublisher = ({ blogPost }: BlogPublisherProps) => {
               
               <div className="grid gap-2">
                 <Label htmlFor="website-type">Website Type</Label>
-                <Select value={newWebsite.type} onValueChange={(value: 'custom' | 'wordpress' | 'headless') => setNewWebsite(prev => ({ ...prev, type: value }))}>
+                <Select value={newWebsite.type} onValueChange={(value: WebsiteType) => setNewWebsite(prev => ({ ...prev, type: value }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
