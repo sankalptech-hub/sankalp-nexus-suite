@@ -5,6 +5,8 @@ import Services from '@/components/sections/Services';
 import About from '@/components/sections/About';
 import FeaturedContent from '@/components/sections/FeaturedContent';
 import Contact from '@/components/sections/Contact';
+import Blog from '@/components/sections/Blog';
+import Testimonials from '@/components/sections/Testimonials';
 import Footer from '@/components/layout/Footer';
 
 const Index = () => {
@@ -16,6 +18,8 @@ const Index = () => {
         <Services />
         <About />
         <FeaturedContent />
+        <Blog />
+        <Testimonials />
         <Contact />
       </main>
       <Footer />
