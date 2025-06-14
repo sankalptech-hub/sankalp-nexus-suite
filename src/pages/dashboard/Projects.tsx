@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -13,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Calendar, User } from 'lucide-react';
+import { Plus, Calendar, User as UserIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Projects = () => {
@@ -195,7 +194,7 @@ const Projects = () => {
                   Created {new Date(project.created_at).toLocaleDateString()}
                 </div>
                 <div className="flex items-center text-sm text-muted-foreground">
-                  <User className="mr-2 h-4 w-4" />
+                  <UserIcon className="mr-2 h-4 w-4" />
                   Client Project
                 </div>
               </CardContent>
