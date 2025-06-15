@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
+import FAQ from '@/components/sections/FAQ';
 
 const Contact = () => {
   const contactInfo = [
@@ -183,6 +184,9 @@ const Contact = () => {
             </div>
           </div>
         </section>
+
+        {/* FAQ Section */}
+        <FAQ />
       </main>
       <Footer />
     </div>

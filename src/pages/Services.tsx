@@ -5,6 +5,7 @@ import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, Code, Settings, Github, Smartphone, Cloud, Database } from 'lucide-react';
+import CaseStudies from '@/components/sections/CaseStudies';
 
 const Services = () => {
   const services = [
@@ -113,6 +114,9 @@ const Services = () => {
             </div>
           </div>
         </section>
+
+        {/* Case Studies Section */}
+        <CaseStudies />
 
         {/* CTA Section */}
         <section className="py-24">
