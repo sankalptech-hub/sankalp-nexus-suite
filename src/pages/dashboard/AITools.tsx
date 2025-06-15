@@ -4,12 +4,13 @@ import type { User } from '@supabase/supabase-js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Bot, Code, FileText, Mail, Image as ImageIcon, Sparkles, PenTool, HelpCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Bot, Code, FileText, Mail, Image as ImageIcon, Sparkles, PenTool, HelpCircle, Search, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { aiClient, type AIMessage, generateImage } from '@/lib/ai/aiClient';
 import { aiActions, executeAIAction } from '@/lib/ai/aiActions';
 
-// Import our modular components
+// Import existing modular components
 import { AIToolbar } from '@/components/ai/AIToolbar';
 import { AIChatHistory, type Message } from '@/components/ai/AIChatHistory';
 import { AIInputBox } from '@/components/ai/AIInputBox';
@@ -17,15 +18,17 @@ import { AISettingsModal, type AISettings } from '@/components/ai/AISettingsModa
 import { ConversationHistory } from '@/components/ai/ConversationHistory';
 import { BlogWriter } from '@/components/ai/BlogWriter';
 
-// Import new onboarding components
+// Import onboarding components
 import { WelcomeModal } from '@/components/ai/WelcomeModal';
 import { OnboardingTour } from '@/components/ai/OnboardingTour';
 import { HelpCenter } from '@/components/ai/HelpCenter';
 
+// Import new enhanced components
+import { ToolDescriptions } from '@/components/ai/ToolDescriptions';
+import { SearchableTools } from '@/components/ai/SearchableTools';
+
 /**
- * AITools Page
- * Main container for the AI assistant interface
- * Integrates all AI components and manages state
+ * AITools Page - Enhanced with better descriptions and search functionality
  */
 const AITools = () => {
   const { user } = useOutletContext<{ user: User }>();
@@ -45,10 +48,11 @@ How can I assist you today?`,
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeCategory, setActiveCategory] = useState('general');
+  const [currentView, setCurrentView] = useState<'overview' | 'search' | 'chat'>('overview');
   const [aiSettings, setAISettings] = useState<AISettings>({
-    model: 'llama3-8b-8192', // Default to Groq Llama 3 8B
+    model: 'llama3-8b-8192',
     temperature: 0.7,
-    provider: 'auto', // This will prioritize Groq
+    provider: 'auto',
   });
 
   // Onboarding state
@@ -171,16 +175,14 @@ How can I assist you today?`,
     setIsLoading(true);
 
     try {
-      // Convert messages to AI format
       const aiMessages: AIMessage[] = messages
-        .filter(msg => !msg.isImage) // Exclude image messages for now
-        .slice(-10) // Keep last 10 messages for context
+        .filter(msg => !msg.isImage)
+        .slice(-10)
         .map(msg => ({
           role: msg.role as 'user' | 'assistant',
           content: msg.content,
         }));
 
-      // Add system prompt based on category
       const systemPrompts = {
         general: 'You are a helpful AI assistant for Sankalp Tech & Solution Inc., a technology company focused on web development, AI automation, CRM systems, and business automation.',
         code: 'You are a senior software developer expert in React, Next.js, TypeScript, Tailwind CSS, and modern web development. Provide clear, practical coding solutions.',
@@ -197,7 +199,6 @@ How can I assist you today?`,
         });
       }
 
-      // Add the new user message
       aiMessages.push({
         role: 'user',
         content: input,
@@ -294,7 +295,6 @@ How can I assist you today?`,
       const action = aiActions.find(a => a.id === actionId);
       if (!action) return;
 
-      // Add user message showing the action
       const userMessage: Message = {
         id: Date.now().toString(),
         role: 'user',
@@ -333,14 +333,20 @@ How can I assist you today?`,
 
   const handleLoadConversation = (loadedMessages: Message[]) => {
     setMessages(loadedMessages);
+    setCurrentView('chat');
     toast({
       title: 'Conversation Loaded',
       description: 'Previous conversation restored',
     });
   };
 
+  const handleCategorySelect = (categoryId: string) => {
+    setActiveCategory(categoryId);
+    setCurrentView('chat');
+  };
+
   // If the active category is 'blog', render the Blog Writer component
-  if (activeCategory === 'blog') {
+  if (activeCategory === 'blog' && currentView === 'chat') {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -357,45 +363,24 @@ How can I assist you today?`,
               </div>
             )}
           </div>
-          <Button
-            variant="outline"
-            onClick={() => setShowHelp(true)}
-            className="flex items-center gap-2"
-          >
-            <HelpCircle className="h-4 w-4" />
-            Help
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentView('overview')}
+            >
+              <Info className="h-4 w-4 mr-2" />
+              Overview
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowHelp(true)}
+            >
+              <HelpCircle className="h-4 w-4 mr-2" />
+              Help
+            </Button>
+          </div>
         </div>
 
-        {/* AI Tool Categories */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-          {aiToolCategories.map((category) => {
-            const Icon = category.icon;
-            return (
-              <Card 
-                key={category.id}
-                className={`cursor-pointer transition-all hover:shadow-md ${
-                  activeCategory === category.id ? 'ring-2 ring-primary' : ''
-                }`}
-                onClick={() => setActiveCategory(category.id)}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center space-x-2">
-                    <Icon className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-sm">{category.name}</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-xs">
-                    {category.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* Blog Writer Component */}
         <BlogWriter aiSettings={aiSettings} />
 
         {/* Onboarding Modals */}
@@ -443,82 +428,87 @@ How can I assist you today?`,
         </Button>
       </div>
 
-      {/* AI Tool Categories with improved descriptions */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        {aiToolCategories.map((category) => {
-          const Icon = category.icon;
-          return (
-            <Card 
-              key={category.id}
-              className={`cursor-pointer transition-all hover:shadow-md group ${
-                activeCategory === category.id ? 'ring-2 ring-primary' : ''
-              }`}
-              onClick={() => setActiveCategory(category.id)}
-              title={category.detailedDescription}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-center space-x-2">
-                  <Icon className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-sm">{category.name}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-xs">
-                  {category.description}
-                </CardDescription>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      {/* Enhanced Navigation Tabs */}
+      <Tabs value={currentView} onValueChange={(value) => setCurrentView(value as any)}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <Info className="h-4 w-4" />
+            Tool Overview
+          </TabsTrigger>
+          <TabsTrigger value="search" className="flex items-center gap-2">
+            <Search className="h-4 w-4" />
+            Search Tools
+          </TabsTrigger>
+          <TabsTrigger value="chat" className="flex items-center gap-2">
+            <Bot className="h-4 w-4" />
+            AI Chat
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Quick Actions Toolbar */}
-      <AIToolbar 
-        activeCategory={activeCategory}
-        onQuickAction={handleQuickAction}
-        isLoading={isLoading}
-      />
-
-      {/* Chat Interface */}
-      <Card className="h-[600px] flex flex-col">
-        <CardHeader className="border-b">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <CardTitle>AI Chat Assistant</CardTitle>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">
-                {aiToolCategories.find(c => c.id === activeCategory)?.name}
-              </Badge>
-              <ConversationHistory
-                currentMessages={messages}
-                currentCategory={activeCategory}
-                onLoadConversation={handleLoadConversation}
-              />
-              <AISettingsModal
-                settings={aiSettings}
-                onSettingsChange={handleSettingsChange}
-                availableProviders={aiClient.getAvailableProviders()}
-              />
-            </div>
-          </div>
-        </CardHeader>
-        
-        <CardContent className="flex-1 flex flex-col p-0">
-          <AIChatHistory 
-            messages={messages}
-            isLoading={isLoading}
-          />
-          
-          <AIInputBox
+        <TabsContent value="overview" className="space-y-6">
+          <ToolDescriptions
             activeCategory={activeCategory}
-            onSendMessage={handleSendMessage}
-            onGenerateImage={handleImageGeneration}
+            onCategorySelect={handleCategorySelect}
+          />
+        </TabsContent>
+
+        <TabsContent value="search" className="space-y-6">
+          <SearchableTools
+            activeCategory={activeCategory}
+            onCategorySelect={handleCategorySelect}
+          />
+        </TabsContent>
+
+        <TabsContent value="chat" className="space-y-6">
+          {/* Quick Actions Toolbar */}
+          <AIToolbar 
+            activeCategory={activeCategory}
+            onQuickAction={handleQuickAction}
             isLoading={isLoading}
           />
-        </CardContent>
-      </Card>
+
+          {/* Chat Interface */}
+          <Card className="h-[600px] flex flex-col">
+            <CardHeader className="border-b">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <CardTitle>AI Chat Assistant</CardTitle>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">
+                    {aiToolCategories.find(c => c.id === activeCategory)?.name}
+                  </Badge>
+                  <ConversationHistory
+                    currentMessages={messages}
+                    currentCategory={activeCategory}
+                    onLoadConversation={handleLoadConversation}
+                  />
+                  <AISettingsModal
+                    settings={aiSettings}
+                    onSettingsChange={handleSettingsChange}
+                    availableProviders={aiClient.getAvailableProviders()}
+                  />
+                </div>
+              </div>
+            </CardHeader>
+            
+            <CardContent className="flex-1 flex flex-col p-0">
+              <AIChatHistory 
+                messages={messages}
+                isLoading={isLoading}
+              />
+              
+              <AIInputBox
+                activeCategory={activeCategory}
+                onSendMessage={handleSendMessage}
+                onGenerateImage={handleImageGeneration}
+                isLoading={isLoading}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Onboarding Modals */}
       <WelcomeModal
