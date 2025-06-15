@@ -2,8 +2,19 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Play } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
+  const navigate = useNavigate();
+
+  const handleStartProject = () => {
+    navigate('/contact');
+  };
+
+  const handleWatchStory = () => {
+    navigate('/about');
+  };
+
   return (
     <section id="home" className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20">
       <div className="container px-4 md:px-6 max-w-6xl">
@@ -23,11 +34,11 @@ const Hero = () => {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 items-center">
-            <Button size="lg" className="text-lg px-8 py-4 h-auto group">
+            <Button size="lg" className="text-lg px-8 py-4 h-auto group" onClick={handleStartProject}>
               Start Your Project
               <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-4 h-auto group">
+            <Button variant="outline" size="lg" className="text-lg px-8 py-4 h-auto group" onClick={handleWatchStory}>
               <Play className="mr-2 h-5 w-5" />
               Watch Our Story
             </Button>

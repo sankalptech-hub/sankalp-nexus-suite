@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Code, Settings, Github, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const services = [
   {
@@ -9,22 +10,31 @@ const services = [
     title: 'Custom Development',
     description: 'Bespoke web applications, mobile apps, and enterprise software tailored to your unique business requirements.',
     features: ['React & Next.js', 'Mobile Apps', 'API Development', 'Cloud Native'],
+    path: '/services'
   },
   {
     icon: <Settings className="h-12 w-12 text-primary" />,
     title: 'AI & Automation',
     description: 'Intelligent automation solutions that streamline operations and unlock new possibilities for your business.',
     features: ['Process Automation', 'AI Integration', 'Machine Learning', 'ChatBot Development'],
+    path: '/services'
   },
   {
     icon: <Github className="h-12 w-12 text-primary" />,
     title: 'CRM & Dashboards',
     description: 'Powerful customer relationship management systems and analytics dashboards for data-driven decisions.',
     features: ['Custom CRM', 'Analytics', 'Real-time Data', 'User Management'],
+    path: '/services'
   },
 ];
 
 const Services = () => {
+  const navigate = useNavigate();
+
+  const handleLearnMore = (path: string) => {
+    navigate(path);
+  };
+
   return (
     <section id="services" className="py-24 md:py-32 bg-muted/30">
       <div className="container px-4 md:px-6 max-w-7xl">
@@ -63,7 +73,10 @@ const Services = () => {
                     </div>
                   ))}
                 </div>
-                <div className="flex items-center text-primary font-medium group-hover:gap-3 gap-2 transition-all cursor-pointer">
+                <div 
+                  className="flex items-center text-primary font-medium group-hover:gap-3 gap-2 transition-all cursor-pointer"
+                  onClick={() => handleLearnMore(service.path)}
+                >
                   Learn More
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
