@@ -5,53 +5,78 @@ import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, Code, Settings, Github, Smartphone, Cloud, Database } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import CaseStudies from '@/components/sections/CaseStudies';
 
 const Services = () => {
+  const navigate = useNavigate();
+
   const services = [
     {
       icon: <Code className="h-12 w-12 text-primary" />,
       title: 'Web Development',
       description: 'Custom web applications built with modern technologies',
       features: ['React & Next.js', 'Full-stack Development', 'Progressive Web Apps', 'E-commerce Solutions'],
-      price: 'Starting at $5,000'
+      price: 'Starting at $5,000',
+      serviceId: 'web-development'
     },
     {
       icon: <Smartphone className="h-12 w-12 text-primary" />,
       title: 'Mobile Development',
       description: 'Native and cross-platform mobile applications',
       features: ['iOS & Android', 'React Native', 'Flutter', 'App Store Optimization'],
-      price: 'Starting at $8,000'
+      price: 'Starting at $8,000',
+      serviceId: 'mobile-development'
     },
     {
       icon: <Settings className="h-12 w-12 text-primary" />,
       title: 'AI & Automation',
       description: 'Intelligent solutions to streamline your operations',
       features: ['Process Automation', 'AI Integration', 'Machine Learning', 'ChatBot Development'],
-      price: 'Starting at $10,000'
+      price: 'Starting at $10,000',
+      serviceId: 'ai-automation'
     },
     {
       icon: <Database className="h-12 w-12 text-primary" />,
       title: 'CRM Systems',
       description: 'Custom CRM and dashboard solutions',
       features: ['Custom CRM', 'Analytics Dashboards', 'Real-time Data', 'User Management'],
-      price: 'Starting at $7,000'
+      price: 'Starting at $7,000',
+      serviceId: 'crm-systems'
     },
     {
       icon: <Cloud className="h-12 w-12 text-primary" />,
       title: 'Cloud Solutions',
       description: 'Scalable cloud infrastructure and deployment',
       features: ['AWS & Azure', 'DevOps', 'Microservices', 'Container Orchestration'],
-      price: 'Starting at $3,000'
+      price: 'Starting at $3,000',
+      serviceId: 'cloud-solutions'
     },
     {
       icon: <Github className="h-12 w-12 text-primary" />,
       title: 'Consulting',
       description: 'Strategic technology consulting and planning',
       features: ['Technical Audits', 'Architecture Planning', 'Code Reviews', 'Best Practices'],
-      price: 'Starting at $150/hour'
+      price: 'Starting at $150/hour',
+      serviceId: 'consulting'
     }
   ];
+
+  const handleGetStarted = () => {
+    navigate('/contact');
+  };
+
+  const handleLearnMore = (serviceId: string) => {
+    navigate(`/consultation?service=${serviceId}`);
+  };
+
+  const handleScheduleConsultation = () => {
+    navigate('/consultation');
+  };
+
+  const handleViewPortfolio = () => {
+    navigate('/portfolio');
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -73,7 +98,7 @@ const Services = () => {
                   From concept to deployment, we provide comprehensive technology services that help your business thrive in the digital age.
                 </p>
               </div>
-              <Button size="lg" className="group">
+              <Button size="lg" className="group" onClick={handleGetStarted}>
                 Get Started Today
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Button>
@@ -104,7 +129,11 @@ const Services = () => {
                         </div>
                       ))}
                     </div>
-                    <Button variant="outline" className="w-full group">
+                    <Button 
+                      variant="outline" 
+                      className="w-full group"
+                      onClick={() => handleLearnMore(service.serviceId)}
+                    >
                       Learn More
                       <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </Button>
@@ -129,10 +158,10 @@ const Services = () => {
                 Let's discuss how our services can help you achieve your goals.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg">
+                <Button size="lg" onClick={handleScheduleConsultation}>
                   Schedule Consultation
                 </Button>
-                <Button variant="outline" size="lg">
+                <Button variant="outline" size="lg" onClick={handleViewPortfolio}>
                   View Portfolio
                 </Button>
               </div>

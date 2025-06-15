@@ -8,6 +8,8 @@ import { HelmetProvider } from 'react-helmet-async';
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Services from "./pages/Services";
+import Portfolio from "./pages/Portfolio";
+import Consultation from "./pages/Consultation";
 import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
@@ -31,6 +33,8 @@ const App: React.FC = () => {
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<About />} />
               <Route path="/services" element={<Services />} />
+              <Route path="/portfolio" element={<Portfolio />} />
+              <Route path="/consultation" element={<Consultation />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/auth" element={<Auth />} />
