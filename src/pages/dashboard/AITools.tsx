@@ -3,7 +3,8 @@ import { useOutletContext } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bot, Code, FileText, Mail, Image as ImageIcon, Sparkles, PenTool } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Bot, Code, FileText, Mail, Image as ImageIcon, Sparkles, PenTool, HelpCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { aiClient, type AIMessage, generateImage } from '@/lib/ai/aiClient';
 import { aiActions, executeAIAction } from '@/lib/ai/aiActions';
@@ -15,6 +16,11 @@ import { AIInputBox } from '@/components/ai/AIInputBox';
 import { AISettingsModal, type AISettings } from '@/components/ai/AISettingsModal';
 import { ConversationHistory } from '@/components/ai/ConversationHistory';
 import { BlogWriter } from '@/components/ai/BlogWriter';
+
+// Import new onboarding components
+import { WelcomeModal } from '@/components/ai/WelcomeModal';
+import { OnboardingTour } from '@/components/ai/OnboardingTour';
+import { HelpCenter } from '@/components/ai/HelpCenter';
 
 /**
  * AITools Page
@@ -45,44 +51,63 @@ How can I assist you today?`,
     provider: 'auto', // This will prioritize Groq
   });
 
+  // Onboarding state
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [showTour, setShowTour] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+
   const aiToolCategories = [
     {
       id: 'general',
       name: 'General Chat',
       icon: Bot,
       description: 'General AI assistance and conversation',
+      detailedDescription: 'Get help with general questions, brainstorming, research, and everyday tasks. Perfect for quick questions and exploratory conversations.',
     },
     {
       id: 'code',
       name: 'Code Assistant',
       icon: Code,
       description: 'Help with coding, debugging, and development',
+      detailedDescription: 'Expert assistance with programming languages, code review, debugging, architecture decisions, and development best practices.',
     },
     {
       id: 'documentation',
       name: 'Documentation',
       icon: FileText,
       description: 'Generate and review technical documentation',
+      detailedDescription: 'Create comprehensive technical docs, API documentation, user guides, and project documentation with proper structure and clarity.',
     },
     {
       id: 'email',
       name: 'Email Writer',
       icon: Mail,
       description: 'Compose professional emails and communications',
+      detailedDescription: 'Draft professional emails, business communications, proposals, and correspondence with appropriate tone and formatting.',
     },
     {
       id: 'blog',
       name: 'Blog Writer',
       icon: PenTool,
       description: 'Generate engaging blog posts and articles',
+      detailedDescription: 'Create compelling blog content, articles, and marketing copy with SEO optimization and engaging storytelling.',
     },
     {
       id: 'image',
       name: 'Image Generation',
       icon: ImageIcon,
       description: 'Generate images using DALL-E',
+      detailedDescription: 'Create custom images, illustrations, and visual content using AI. Perfect for marketing materials, presentations, and creative projects.',
     },
   ];
+
+  // Check if user is new and show welcome modal
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem('ai-tools-welcome-seen');
+    if (!hasSeenWelcome) {
+      setShowWelcome(true);
+    }
+  }, []);
 
   // Load AI settings from localStorage
   useEffect(() => {
@@ -103,6 +128,25 @@ How can I assist you today?`,
     toast({
       title: 'Settings Updated',
       description: 'AI preferences saved successfully',
+    });
+  };
+
+  const handleWelcomeClose = () => {
+    setShowWelcome(false);
+    localStorage.setItem('ai-tools-welcome-seen', 'true');
+  };
+
+  const handleStartTour = () => {
+    setShowWelcome(false);
+    setShowTour(true);
+    localStorage.setItem('ai-tools-welcome-seen', 'true');
+  };
+
+  const handleTourComplete = () => {
+    setShowTour(false);
+    toast({
+      title: 'Welcome!',
+      description: 'You\'re all set to start using our AI tools. Happy creating!',
     });
   };
 
@@ -299,18 +343,28 @@ How can I assist you today?`,
   if (activeCategory === 'blog') {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">AI Tools</h1>
-          <p className="text-muted-foreground mt-2">
-            Access powerful AI assistants powered by OpenAI and Groq
-          </p>
-          {!aiClient.isAvailable() && (
-            <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-              <p className="text-yellow-800 dark:text-yellow-200">
-                ⚠️ AI services not configured. Please set your API keys in environment variables.
-              </p>
-            </div>
-          )}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">AI Tools</h1>
+            <p className="text-muted-foreground mt-2">
+              Access powerful AI assistants powered by OpenAI and Groq
+            </p>
+            {!aiClient.isAvailable() && (
+              <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                <p className="text-yellow-800 dark:text-yellow-200">
+                  ⚠️ AI services not configured. Please set your API keys in environment variables.
+                </p>
+              </div>
+            )}
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => setShowHelp(true)}
+            className="flex items-center gap-2"
+          >
+            <HelpCircle className="h-4 w-4" />
+            Help
+          </Button>
         </div>
 
         {/* AI Tool Categories */}
@@ -343,37 +397,64 @@ How can I assist you today?`,
 
         {/* Blog Writer Component */}
         <BlogWriter aiSettings={aiSettings} />
+
+        {/* Onboarding Modals */}
+        <WelcomeModal
+          isOpen={showWelcome}
+          onClose={handleWelcomeClose}
+          onStartTour={handleStartTour}
+        />
+        <OnboardingTour
+          isOpen={showTour}
+          onClose={() => setShowTour(false)}
+          onComplete={handleTourComplete}
+        />
+        <HelpCenter
+          isOpen={showHelp}
+          onClose={() => setShowHelp(false)}
+        />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">AI Tools</h1>
-        <p className="text-muted-foreground mt-2">
-          Access powerful AI assistants powered by OpenAI and Groq
-        </p>
-        {!aiClient.isAvailable() && (
-          <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <p className="text-yellow-800 dark:text-yellow-200">
-              ⚠️ AI services not configured. Please set your API keys in environment variables.
-            </p>
-          </div>
-        )}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">AI Tools</h1>
+          <p className="text-muted-foreground mt-2">
+            Access powerful AI assistants powered by OpenAI and Groq
+          </p>
+          {!aiClient.isAvailable() && (
+            <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+              <p className="text-yellow-800 dark:text-yellow-200">
+                ⚠️ AI services not configured. Please set your API keys in environment variables.
+              </p>
+            </div>
+          )}
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => setShowHelp(true)}
+          className="flex items-center gap-2"
+        >
+          <HelpCircle className="h-4 w-4" />
+          Help
+        </Button>
       </div>
 
-      {/* AI Tool Categories */}
+      {/* AI Tool Categories with improved descriptions */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
         {aiToolCategories.map((category) => {
           const Icon = category.icon;
           return (
             <Card 
               key={category.id}
-              className={`cursor-pointer transition-all hover:shadow-md ${
+              className={`cursor-pointer transition-all hover:shadow-md group ${
                 activeCategory === category.id ? 'ring-2 ring-primary' : ''
               }`}
               onClick={() => setActiveCategory(category.id)}
+              title={category.detailedDescription}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-center space-x-2">
@@ -438,6 +519,22 @@ How can I assist you today?`,
           />
         </CardContent>
       </Card>
+
+      {/* Onboarding Modals */}
+      <WelcomeModal
+        isOpen={showWelcome}
+        onClose={handleWelcomeClose}
+        onStartTour={handleStartTour}
+      />
+      <OnboardingTour
+        isOpen={showTour}
+        onClose={() => setShowTour(false)}
+        onComplete={handleTourComplete}
+      />
+      <HelpCenter
+        isOpen={showHelp}
+        onClose={() => setShowHelp(false)}
+      />
     </div>
   );
 };
