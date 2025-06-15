@@ -26,6 +26,7 @@ import { HelpCenter } from '@/components/ai/HelpCenter';
 // Import new enhanced components
 import { ToolDescriptions } from '@/components/ai/ToolDescriptions';
 import { SearchableTools } from '@/components/ai/SearchableTools';
+import { ToolNavigation } from '@/components/ai/ToolNavigation';
 
 /**
  * AITools Page - Enhanced with better descriptions and search functionality
@@ -427,6 +428,13 @@ How can I assist you today?`,
           Help
         </Button>
       </div>
+
+      {/* Simplified Tool Navigation */}
+      <ToolNavigation
+        activeCategory={activeCategory}
+        onCategorySelect={handleCategorySelect}
+        isLoading={isLoading}
+      />
 
       {/* Enhanced Navigation Tabs */}
       <Tabs value={currentView} onValueChange={(value) => setCurrentView(value as any)}>
