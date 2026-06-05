@@ -107,13 +107,13 @@ const FAQ = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 
-              href="mailto:contact@sankalp.tech"
+              href="mailto:hello@sankalp-tech.com"
               className="inline-flex items-center justify-center px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
             >
               Email Us
             </a>
             <a 
-              href="tel:+1-555-123-4567"
+              href="tel:"
               className="inline-flex items-center justify-center px-6 py-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md transition-colors"
             >
               Schedule a Call

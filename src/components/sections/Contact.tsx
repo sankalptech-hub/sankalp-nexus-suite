@@ -8,7 +8,7 @@ const Contact = () => {
   const navigate = useNavigate();
 
   const handleContactEmail = () => {
-    window.location.href = 'mailto:contact@sankalp.tech';
+    window.location.href = 'mailto:hello@sankalp-tech.com';
   };
 
   const handleScheduleCall = () => {
@@ -26,7 +26,7 @@ const Contact = () => {
         </div>
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button size="lg" onClick={handleContactEmail}>
-                <Mail className="mr-2 h-4 w-4" /> contact@sankalp.tech
+                <Mail className="mr-2 h-4 w-4" /> hello@sankalp-tech.com
             </Button>
             <Button size="lg" variant="outline" onClick={handleScheduleCall}>
                 <Phone className="mr-2 h-4 w-4" /> Schedule a Call

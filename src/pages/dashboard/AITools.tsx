@@ -185,7 +185,7 @@ How can I assist you today?`,
         }));
 
       const systemPrompts = {
-        general: 'You are a helpful AI assistant for Sankalp Tech & Solution Inc., a technology company focused on web development, AI automation, CRM systems, and business automation.',
+        general: 'You are a helpful AI assistant for Sankalp Tech, a technology company focused on web development, AI automation, CRM systems, and business automation.',
         code: 'You are a senior software developer expert in React, Next.js, TypeScript, Tailwind CSS, and modern web development. Provide clear, practical coding solutions.',
         documentation: 'You are a technical writer. Create clear, comprehensive documentation with examples and best practices.',
         email: 'You are a professional communication assistant. Write clear, polite, and effective business emails.',

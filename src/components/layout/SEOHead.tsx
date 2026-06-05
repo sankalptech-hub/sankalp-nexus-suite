@@ -12,11 +12,11 @@ interface SEOHeadProps {
 }
 
 const SEOHead: React.FC<SEOHeadProps> = ({
-  title = "Sankalp Tech & Solution Inc. | AI Automation & Custom Development Solutions",
+  title = "Sankalp Tech | AI Automation · Web Development · SaaS",
   description = "Transform your business with Sankalp Tech's AI automation, custom web development, CRM systems, and cloud solutions. Expert technology consulting for modern enterprises.",
   keywords = "AI automation, custom development, CRM systems, web development, cloud solutions, technology consulting",
-  image = "https://lovable.dev/opengraph-image-p98pqg.png",
-  url = "https://sankalp.tech",
+  image = "https://sankalp-tech.com/og-image.png",
+  url = "https://sankalp-tech.com",
   type = "website"
 }) => {
   return (

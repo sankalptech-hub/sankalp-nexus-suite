@@ -5,7 +5,7 @@ import { Linkedin, Twitter, Github, Mail } from 'lucide-react';
 const socials = [
   {
     label: "LinkedIn",
-    url: "https://www.linkedin.com/company/sankalp-tech-solution",
+    url: "https://www.linkedin.com/company/sankalptech",
     icon: Linkedin,
   },
   {
@@ -15,12 +15,12 @@ const socials = [
   },
   {
     label: "GitHub",
-    url: "https://github.com/sankalptech",
+    url: "https://github.com/sankalptech-hub",
     icon: Github,
   },
   {
     label: "Email",
-    url: "mailto:contact@sankalp.tech",
+    url: "mailto:hello@sankalp-tech.com",
     icon: Mail,
   },
 ];
@@ -29,9 +29,9 @@ const Footer = () => {
   return (
     <footer className="bg-muted p-6 md:py-8 w-full">
       <div className="container mx-auto flex flex-col md:flex-row items-center justify-between text-sm text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} Sankalp Tech &amp; Solution Inc. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} 1001628330 Ontario Inc. o/a Sankalp Tech · All rights reserved.</p>
         <div className="flex gap-6 mt-4 md:mt-0">
-          <a href="mailto:contact@sankalp.tech" className="hover:text-foreground">contact@sankalp.tech</a>
+          <a href="mailto:hello@sankalp-tech.com" className="hover:text-foreground">hello@sankalp-tech.com</a>
           <a href="#" className="hover:text-foreground">Privacy Policy</a>
           <a href="#" className="hover:text-foreground">Terms of Service</a>
         </div>

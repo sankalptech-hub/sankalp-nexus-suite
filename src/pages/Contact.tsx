@@ -80,7 +80,7 @@ const Contact = () => {
     {
       icon: <Mail className="h-6 w-6 text-primary" />,
       title: 'Email Us',
-      details: 'contact@sankalp.tech',
+      details: 'hello@sankalp-tech.com',
       description: 'Send us an email anytime'
     },
     {

@@ -49,7 +49,7 @@ const About = () => {
                   <span className="block text-primary">Digital Reality</span>
                 </h1>
                 <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                  Founded in Canada, Sankalp Tech & Solution Inc. is a leading technology company dedicated to helping businesses harness the power of modern technology to achieve their goals.
+                  Founded in Canada, Sankalp Tech is a leading technology company dedicated to helping businesses harness the power of modern technology to achieve their goals.
                 </p>
               </div>
               <Button size="lg" className="group" aria-label="Get started with Sankalp Tech">
